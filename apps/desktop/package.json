@@ -1,0 +1,27 @@
+{
+  "name": "@deepseek-ai/dsh-desktop",
+  "description": "Electron desktop shell: runs the harness as a child process and hosts the existing Web GUI",
+  "version": "0.1.0-rc.5",
+  "private": true,
+  "type": "module",
+  "main": "lib/main.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -p .",
+    "start": "electron .",
+    "dev": "node scripts/dev-watch.mjs",
+    "test": "pnpm --workspace-root exec vitest run apps/desktop/tests",
+    "typecheck": "tsc -p . --noEmit && tsc -p tests/tsconfig.json",
+    "prepare:runtime": "node scripts/prepare-runtime.mjs",
+    "dist": "tsc -p . && node scripts/prepare-runtime.mjs && electron-builder",
+    "dist:mac": "tsc -p . && node scripts/prepare-runtime.mjs && electron-builder --mac",
+    "dist:win": "tsc -p . && node scripts/prepare-runtime.mjs && electron-builder --win"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "electron": "^43.0.0",
+    "electron-builder": "^25.1.8",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
+  }
+}

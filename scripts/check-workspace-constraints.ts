@@ -9,6 +9,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import { hasTypertRemoteNavigation, isForbiddenPublicationFile } from './publication-payload.ts'
 import { collectProjectReferenceFaceViolations } from './project-reference-faces.ts'
+import { isPrivateReleaseMemberDirectory } from './release/families.ts'
 
 const root = resolve(import.meta.dirname, '..')
 // vendor/* is single-level; packages/<group>/<pkg> nests one level deeper
@@ -241,26 +242,29 @@ function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
       errors.push(`${label}: published Landlock package repository must use ${repositoryUrl} with directory ${expectedDirectory} for trusted publishing`)
     }
   } else if (releaseMemberDirectory.test(dir)) {
-    // Release members state that they are publishable: npm refuses a private
-    // package, and the repository field is how a consumer finds the source of
-    // the package it installed.
-    //
-    // Access is per release sequence, not per scope: the vendored framework and
-    // the Landlock packages publish publicly because outside consumers install
-    // them, while the dsh family stays restricted until its own sequence goes
-    // public. A mixed scope is why no publish path passes `--access` — one flag
-    // cannot serve both, so each packed manifest decides
-    // ([rationale](../.agents/notes/implemented/process/2026-08-13-public-vendor-and-native-sequences.md)).
     if (manifest.private === true) {
-      errors.push(`${label}: release member must not set "private": true`)
-    }
-    if (manifest.publishConfig?.access !== 'public') {
-      errors.push(`${label}: release member must set publishConfig.access to "public"`)
-    }
-    if (manifest.repository?.type !== 'git'
-      || manifest.repository.url !== publishedRepositoryUrl
-      || manifest.repository.directory !== dir) {
-      errors.push(`${label}: release member repository must use ${publishedRepositoryUrl} with directory ${dir}`)
+      if (!isPrivateReleaseMemberDirectory(dir)) {
+        errors.push(`${label}: release member must not set "private": true`)
+      }
+    } else {
+      // Release members state that they are publishable: npm refuses a private
+      // package, and the repository field is how a consumer finds the source of
+      // the package it installed.
+      //
+      // Access is per release sequence, not per scope: the vendored framework and
+      // the Landlock packages publish publicly because outside consumers install
+      // them, while the dsh family stays restricted until its own sequence goes
+      // public. A mixed scope is why no publish path passes `--access` — one flag
+      // cannot serve both, so each packed manifest decides
+      // ([rationale](../.agents/notes/implemented/process/2026-08-13-public-vendor-and-native-sequences.md)).
+      if (manifest.publishConfig?.access !== 'public') {
+        errors.push(`${label}: release member must set publishConfig.access to "public"`)
+      }
+      if (manifest.repository?.type !== 'git'
+        || manifest.repository.url !== publishedRepositoryUrl
+        || manifest.repository.directory !== dir) {
+        errors.push(`${label}: release member repository must use ${publishedRepositoryUrl} with directory ${dir}`)
+      }
     }
   } else if (manifest.private !== true) {
     errors.push(`${label}: package.json must set "private": true`)
@@ -279,7 +283,7 @@ function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
     }
   }
 
-  if (dir.startsWith('apps/') && manifest.name?.startsWith('@deepseek-ai/')) {
+  if (dir.startsWith('apps/') && manifest.name?.startsWith('@deepseek-ai/') && manifest.private !== true) {
     const expectedFiles = appPackageFiles[manifest.name]
     if (expectedFiles === undefined) {
       errors.push(`${label}: app package has no publication files policy`)

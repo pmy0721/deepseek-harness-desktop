@@ -1,0 +1,41 @@
+appId: com.deepseek.dsh-desktop
+productName: DeepSeek Harness
+# Fixed, version-free filenames so `releases/latest/download/…` one-click links
+# stay stable across releases. ${arch} keeps the platforms unambiguous:
+# DeepSeek.Harness-arm64.dmg on macOS, DeepSeek.Harness-x64.exe on Windows.
+artifactName: DeepSeek.Harness-${arch}.${ext}
+directories:
+  output: release
+files:
+  - lib/**
+  - package.json
+extraResources:
+  - from: vendor/runtime
+    to: runtime
+  - from: vendor/harness
+    to: harness
+  - from: resources
+    to: desktop-resources
+asar: true
+# The shell has no in-process native dependencies — the harness runs as a
+# child process on its bundled Node — so skip electron-builder's dependency
+# rebuild (which would otherwise re-run `pnpm install --production` and trip
+# the workspace's postinstall).
+npmRebuild: false
+mac:
+  icon: build/icon.png
+  category: public.app-category.developer-tools
+  hardenedRuntime: true
+  # Local builds are intentionally unsigned. Distribution signing and
+  # notarization require credentials owned by the distributor.
+  identity: null
+  notarize: false
+  target:
+    - dmg
+win:
+  icon: build/icon.png
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true

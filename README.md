@@ -6,6 +6,10 @@ DeepSeek Harness (`dsh`) is an open-source agent harness developed by [DeepSeek 
 
 It uses an architecture where **everything is a plugin**, and is powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper).
 
+## Desktop distribution
+
+This repository adds a community-maintained desktop application to the upstream DeepSeek Harness source. It is not an official DeepSeek product. See the [desktop application documentation](apps/desktop/README.md) for its build, runtime, security, limitations, and source provenance.
+
 ## Developer preview
 
 DeepSeek Harness is currently in _developer preview_ and is iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**

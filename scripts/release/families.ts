@@ -19,7 +19,19 @@ const ORDER_SECTIONS = ['dependencies', 'optionalDependencies'] as const
 /** The workspace root manifest, which is never a release member. */
 const WORKSPACE_ROOT_PACKAGE = '@deepseek-ai/dsh-root'
 
-/** One publishable package of a release family. */
+/** Versioned release-family members distributed outside npm. */
+const PRIVATE_RELEASE_MEMBER_DIRECTORIES = new Set(['apps/desktop'])
+
+/**
+ * Whether a release-family directory is allowed to remain private.
+ * @param directory - Repository-relative package directory.
+ * @returns True only for a reviewed non-npm distribution member.
+ */
+export function isPrivateReleaseMemberDirectory(directory: string): boolean {
+  return PRIVATE_RELEASE_MEMBER_DIRECTORIES.has(directory)
+}
+
+/** One versioned member of a release family, whether or not npm publishes it. */
 export interface ReleaseMember {
   /** Repository-relative package directory, for example `packages/core/session`. */
   readonly directory: string
@@ -104,6 +116,19 @@ export abstract class ReleaseFamily {
       })
     }
     return members
+  }
+
+  /**
+   * The members this family publishes to npm. A `private` member still shares
+   * the family version and tag — `bump` advances it and `verifyVersions` holds
+   * it — but it ships outside npm, so it never enters a pack or publish set.
+   * `apps/desktop` is the case: an Electron app distributed as GitHub Release
+   * installers, not an npm package.
+   * @param members - this family's members.
+   * @returns The publishable members.
+   */
+  publishableMembers(members: readonly ReleaseMember[]): ReleaseMember[] {
+    return members.filter(member => member.manifest.private !== true)
   }
 
   /**

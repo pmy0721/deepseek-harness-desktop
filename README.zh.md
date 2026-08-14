@@ -6,6 +6,10 @@ DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的�
 
 它采用**一切皆插件**的架构，并由 [Cordis](https://github.com/cordiverse/cordis) 驱动，其设计参见论文 [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper)。
 
+## 桌面发行版
+
+本仓库在上游 DeepSeek Harness 源码中加入了社区维护的桌面应用。它不是 DeepSeek 官方产品。构建、运行、安全性、限制与源码来源见[桌面应用文档](apps/desktop/README.md)。
+
 ## 开发者预览
 
 DeepSeek Harness 目前处于 _开发者预览_ 阶段，正在快速迭代。**未来将出现破坏兼容性的变更。**

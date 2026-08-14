@@ -1,7 +1,7 @@
 /** Release family discovery, publish order, tag naming, and the bump judgements. */
 
 import { describe, expect, it } from 'vitest'
-import { releaseFamily, type ReleaseMember } from './families.ts'
+import { isPrivateReleaseMemberDirectory, releaseFamily, type ReleaseMember } from './families.ts'
 import { compareVersions, nextVendorVersion, reachesPayload } from './bump.ts'
 
 /**
@@ -28,6 +28,16 @@ describe('release families', () => {
     // hyphen would defeat any suffix-stripping.
     expect(vendor.tagPrefixFor({ ...cordis, version: '4.0.0-rc.7' })).toBe('vendor-cordis-v')
     expect(vendor.tagFor({ ...cordis, version: '4.0.0-rc.7' })).toBe('vendor-cordis-v4.0.0-rc.7')
+  })
+
+  it('publishes non-private members and keeps a private member for version sharing', () => {
+    const dsh = releaseFamily('dsh')
+    const cli = member('apps/cli', '@deepseek-ai/dsh')
+    const desktop = member('apps/desktop', '@deepseek-ai/dsh-desktop', { private: true })
+
+    expect(dsh.publishableMembers([cli, desktop]).map(entry => entry.name)).toEqual(['@deepseek-ai/dsh'])
+    expect(isPrivateReleaseMemberDirectory('apps/desktop')).toBe(true)
+    expect(isPrivateReleaseMemberDirectory('packages/core/session')).toBe(false)
   })
 
   it('rejects a family whose members disagree on the shared version', () => {
