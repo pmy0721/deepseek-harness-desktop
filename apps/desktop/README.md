@@ -4,8 +4,6 @@ English | [中文](README.zh.md)
 
 The Electron shell starts the existing `dsh web` application as a supervised child process and displays its loopback Web UI in a hardened `BrowserWindow`. The desktop app does not reimplement the Harness client or API.
 
-Desktop release history is recorded in [Version updates](updates/README.md).
-
 ## Provenance
 
 This desktop distribution is maintained by [Mekey Pan](https://github.com/pmy0721) with Codex. It preserves the core and history of [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness), incorporates and adapts the MIT-licensed Electron implementation from [salathleizhang/deepseek-harness-desktop](https://github.com/salathleizhang/deepseek-harness-desktop), and adapts the native-window, startup-diagnostic, and packaged-runtime verification work from [`anywhere-labs/deepseek-harness-desktop` at `f9aa1b1`](https://github.com/anywhere-labs/deepseek-harness-desktop/tree/f9aa1b1a173e52705aa7e01bb734469a9dd247a8). It is an independent community project, not an official DeepSeek product.

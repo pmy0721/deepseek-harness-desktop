@@ -4,8 +4,6 @@
 
 Electron 桌面壳以受监督子进程运行现有 `dsh web` 应用，并在加固的 `BrowserWindow` 中显示其 loopback Web UI。桌面应用不会重新实现 Harness 客户端或 API。
 
-桌面发行版的变更历史记录在[版本更新](updates/README.md)中。
-
 ## 来源
 
 本桌面发行版由 [Mekey Pan](https://github.com/pmy0721) 借助 Codex 维护。它保留 [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness) 的核心与历史，整合、改编了 [salathleizhang/deepseek-harness-desktop](https://github.com/salathleizhang/deepseek-harness-desktop) 中采用 MIT 许可证的 Electron 实现，并改编了 [`anywhere-labs/deepseek-harness-desktop` 的 `f9aa1b1` 版本](https://github.com/anywhere-labs/deepseek-harness-desktop/tree/f9aa1b1a173e52705aa7e01bb734469a9dd247a8)中的原生窗口、启动诊断与打包运行时检查。它是独立社区项目，不是 DeepSeek 官方产品。
