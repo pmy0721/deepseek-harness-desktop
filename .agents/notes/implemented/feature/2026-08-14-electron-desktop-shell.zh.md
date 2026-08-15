@@ -14,17 +14,21 @@ DeepSeek Harness 通过 `dsh web` 提供图形客户端，因此桌面使用需�
 
 `apps/desktop` 是一个 Electron 桌面壳，以子进程方式监督构建后的 `dsh web` profile。子进程绑定随机 `127.0.0.1` 端口，在 Loader 树完成结算后打印标准就绪 URL，并继续独占 Web Host、API 路由、客户端模块图、会话存储与 profile 数据。Electron 渲染进程加载该源，不修改应用协议。
 
-主进程拥有一个 Harness 子进程和一个应用实例。它把 Host 输出记录到平台日志，以有限指数退避重启异常退出的 Host，普通关闭窗口时将窗口隐藏到托盘，并在明确退出应用前停止子进程。打包版本在随附 Node 运行时上执行部署后的 `@deepseek-ai/dsh` 闭包，不依赖 Electron 内置 Node 或 `PATH` 中的可执行文件。
+主进程拥有一个 Harness 子进程和一个应用实例。它把 Host 输出记录到平台日志，以有限指数退避重启异常退出的 Host，普通关闭窗口时将窗口隐藏到托盘，并在明确退出应用前停止子进程。每个子进程最多有 90 秒输出标准就绪行；超时或格式错误时，主进程会记录最近 32 KiB 启动输出，以与关闭时相同的有限升级机制终止该子进程，向窗口指出诊断日志位置，再由 supervisor 启动替代进程。打包版本在随附 Node 运行时上执行部署后的 `@deepseek-ai/dsh` 闭包，不依赖 Electron 内置 Node 或 `PATH` 中的可执行文件。
+
+Web 客户端消费桌面平台标记，但不会因此获得 Electron 权限。macOS 与 Windows 使用明确的标题栏拖拽 seat，交互后代保持不可拖拽；模态状态会禁用所有拖拽 seat。macOS 使用 90px 折叠侧边栏轨道避让交通灯，Windows 在会话页头预留原生标题栏按钮区域。原生 vibrancy 或 acrylic 只从半透明侧边栏透出；会话栏与详情栏保持不透明，Linux 则在标题栏 inset 下继续使用普通浏览器表面。
 
 渲染进程启用上下文隔离，关闭 Node 集成，启用 Electron 渲染沙箱，拒绝权限请求，并阻止离开受监督 loopback 源的导航。外部 HTTP 与 HTTPS 链接交给系统浏览器打开。窗口不安装 preload 桥，也不暴露 Harness 方法或文件系统原语。
 
-打包步骤从 nodejs.org 下载固定版本的 Node 发行包，依据对应版本的 `SHASUMS256.txt` 校验归档，部署生产 CLI 依赖闭包，实体化工作区链接，并在任一阶段不完整时失败。私有桌面 workspace 共享 dsh 发布版本与 tag，但不进入 npm pack 和 publish 操作。本地 macOS 产物不签名；签名与公证仍由分发者负责。
+打包步骤从 nodejs.org 下载固定版本的 Node 发行包，依据对应版本的 `SHASUMS256.txt` 校验归档，部署生产 CLI 依赖闭包，实体化工作区链接，并在任一阶段不完整时失败。`afterPack` hook 会在生成安装包前，再从完成的应用资源中独立检查目标 Node 可执行文件、部署后的 dsh CLI 入口和 Web 前端入口。私有桌面 workspace 共享 dsh 发布版本与 tag，但不进入 npm pack 和 publish 操作。个人产物保持未签名、未公证；公开分发者负责 Developer ID 签名与公证。
 
 ## Alternatives considered
 
 **把 Electron IPC 作为初始载体。** 本次交付不采用。它还需要为 Host 组合的客户端模块图、插件 bundle、下行流和原生 provider 实现 Electron 到达路径，才能取代 Web Host。协议仍允许后续增加 IPC 传输，但桌面产品不依赖这次传输迁移。
 
 **在 Electron 主进程内运行 Harness。** 否决。Electron 内置 Node 版本与 Electron 发行版耦合，而且 Host 故障会终止原生窗口。受监督子进程使用仓库声明的 Node 版本范围，并隔离进程故障。
+
+**通过 Electron 的 Node 模式运行受监督子进程。** 当前安装包不采用。Electron 43 内置的 Node 24.18.1 能加载已暂存的 `node-pty` 预构建，也能启动 Web Host，但完整组装的 Host 需要额外传入 `--expose-internals`，随附的 Node 22 运行时则可直接启动。移除独立运行时可从 Apple Silicon 暂存树中节省约 124 MiB，但每次 Electron 升级也会同时负责 CLI Node 版本、ABI、可接受的 Node 参数与原生依赖兼容性。独立运行时使两组发布决定保持分离。
 
 **使用 Tauri 或原生 Swift 客户端。** 否决。Harness 仍是 Node 应用，完整客户端已经针对 Chromium 构建。Tauri 会增加 Rust 与系统 WebView 兼容面，同时仍需分发 Node；原生 UI 则会重复实现客户端及其行为。
 
@@ -34,6 +38,6 @@ DeepSeek Harness 通过 `dsh web` 提供图形客户端，因此桌面使用需�
 
 桌面应用保留浏览器产品经过测试的 UI 与线上行为，同时增加可双击、自包含的 macOS 安装包。Host 崩溃不会关闭应用，安装包也不依赖用户安装 Node 或 pnpm。
 
-应用同时分发 Chromium 与 Node，因此磁盘与内存占用高于 CLI。loopback HTTP 与 WebSocket 仍属于桌面运行时，但端口随机且仅绑定 `127.0.0.1`。Electron 不会为模型驱动的子进程增加操作系统沙箱。本地 DMG 在公开分发前需要由发布者签名并公证。
+应用同时分发 Chromium 与 Node，因此磁盘与内存占用高于 CLI。loopback HTTP 与 WebSocket 仍属于桌面运行时，但端口随机且仅绑定 `127.0.0.1`。Electron 不会为模型驱动的子进程增加操作系统沙箱。未签名 DMG 经本机明确批准后可供个人使用；公开发布需要由分发者签名并公证。签名不能替代运行时完整性检查或启动冒烟。
 
 GUI 分层记录仍保持活跃，因为其中的包边界、协议模型和 IPC 扩展点仍会指导后续工作；本记录只取代其“首个 Electron 产品不复用 Web 载体”的假设。

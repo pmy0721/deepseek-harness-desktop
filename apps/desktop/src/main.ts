@@ -17,6 +17,8 @@ import { resolveDesktopEnv } from './env.ts'
 import { createDesktopLifecycle, type DesktopLifecycle } from './window-lifecycle.ts'
 
 const APP_NAME = 'DeepSeek Harness'
+const WINDOW_WIDTH = 1440
+const WINDOW_HEIGHT = 920
 
 /** Minimal connecting page shown before the harness reports readiness. */
 const CONNECTING_HTML = `<!doctype html>
@@ -29,11 +31,34 @@ const CONNECTING_HTML = `<!doctype html>
 </style>
 <p>正在启动 DeepSeek Harness…</p>`
 
+/** Build the local error page shown while the Host restart loop continues. */
+function diagnosticHtml(logFile: string): string {
+  const safeLogFile = logFile
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+  return `<!doctype html>
+<meta charset="utf-8">
+<title>DeepSeek Harness</title>
+<style>
+  body { margin: 0; display: grid; place-items: center; height: 100vh;
+         font: 14px/1.6 system-ui, -apple-system, sans-serif; color: #c8ccd0;
+         background: #1f2328; }
+  main { max-width: 560px; padding: 32px; }
+  code { overflow-wrap: anywhere; color: #9aa0a6; }
+</style>
+<main><h1>Host 启动失败，正在重试</h1>
+<p>启动诊断和最近的 Host 输出已写入：</p><code>${safeLogFile}</code></main>`
+}
+
 let mainWindow: BrowserWindow | null = null
 let supervisor: HarnessSupervisor | null = null
 let tray: Tray | null = null
 let lifecycle: DesktopLifecycle | null = null
 let quitReleased = false
+let startupDiagnosticLog: string | null = null
 
 /**
  * The square DeepSeek icon shipped under `build/` (electron-builder's build
@@ -84,8 +109,8 @@ function hardenSession(): void {
 function createWindow(): BrowserWindow {
   const devIcon = resolveDevIcon()
   const win = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: WINDOW_WIDTH,
+    height: WINDOW_HEIGHT,
     minWidth: 960,
     minHeight: 640,
     show: false,
@@ -98,7 +123,7 @@ function createWindow(): BrowserWindow {
       titleBarOverlay: { color: '#00000000', symbolColor: '#7f858f', height: 44 },
     }),
     ...(process.platform === 'darwin' ? {
-      trafficLightPosition: { x: 16, y: 12 },
+      trafficLightPosition: { x: 16, y: 18 },
       vibrancy: 'sidebar',
       visualEffectState: 'followWindow',
     } : {}),
@@ -198,19 +223,28 @@ function boot(): void {
   const env = resolveDesktopEnv(resourceRoot)
   const sup = new HarnessSupervisor(env.launch.command, env.launch.args, {
     logFile: env.logFile,
+    readinessTimeoutMs: env.readinessTimeoutMs,
     restartDelayMs: env.restartDelayMs,
     maxRestartDelayMs: env.maxRestartDelayMs,
     killTimeoutMs: env.killTimeoutMs,
   })
   supervisor = sup
   sup.on('ready', () => {
+    startupDiagnosticLog = null
     if (mainWindow !== null && !mainWindow.isDestroyed()) loadWindow(mainWindow)
   })
   sup.on('restart', () => {
     // An unexpected exit killed the old origin; return to connecting until the
     // next child reports ready.
-    if (mainWindow !== null && !mainWindow.isDestroyed()) {
+    if (startupDiagnosticLog === null && mainWindow !== null && !mainWindow.isDestroyed()) {
       void mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(CONNECTING_HTML)}`)
+    }
+  })
+  sup.on('diagnostic', ({ message, logFile }) => {
+    startupDiagnosticLog = logFile
+    console.error(`desktop Host startup failed: ${message}; log: ${logFile}`)
+    if (mainWindow !== null && !mainWindow.isDestroyed()) {
+      void mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(diagnosticHtml(logFile))}`)
     }
   })
   sup.start()

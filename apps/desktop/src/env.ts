@@ -17,6 +17,8 @@ export interface DesktopEnv {
   launch: HarnessLaunch
   /** Absolute path of the combined child stdout/stderr log file. */
   logFile: string
+  /** Maximum wait for the Host readiness line, in milliseconds. */
+  readinessTimeoutMs: number
   /** Base of the restart backoff, in milliseconds. */
   restartDelayMs: number
   /** Ceiling of the restart backoff, in milliseconds. */
@@ -91,6 +93,7 @@ export function resolveDesktopEnv(resourceRoot: string): DesktopEnv {
   return {
     launch: resolveLaunch(resourceRoot),
     logFile: join(process.env[LOG_DIR_ENV] ?? defaultLogDir(), 'harness.log'),
+    readinessTimeoutMs: 90_000,
     restartDelayMs: 500,
     maxRestartDelayMs: 10000,
     killTimeoutMs: 5000,

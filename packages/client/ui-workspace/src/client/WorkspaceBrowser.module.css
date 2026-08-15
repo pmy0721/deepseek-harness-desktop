@@ -320,6 +320,11 @@
   pointer-events: none;
 }
 
+:global(html[data-dsh-desktop-platform='darwin']) .fade,
+:global(html[data-dsh-desktop-platform='win32']) .fade {
+  display: none;
+}
+
 /* Wide-only content fades back in on expand remount (mirrors the shell). */
 .wide {
   animation: wide-in 200ms var(--ds-ease-in-out);

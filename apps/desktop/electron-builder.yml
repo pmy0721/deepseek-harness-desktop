@@ -6,6 +6,7 @@ productName: DeepSeek Harness
 artifactName: DeepSeek.Harness-${arch}.${ext}
 directories:
   output: release
+afterPack: scripts/verify-packaged-runtime.mjs
 files:
   - lib/**
   - package.json

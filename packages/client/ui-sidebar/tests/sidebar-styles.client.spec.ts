@@ -26,6 +26,45 @@ function declarations(selector: string): Map<string, string> | undefined {
 }
 
 describe('SidebarRoot.module.css', () => {
+  it('keeps desktop drag and safe-area rules behind the shell marker', () => {
+    expect(declarations('.titlebarDragRegion')?.get('display')).toBe('none')
+    expect(
+      declarations(":global(html[data-dsh-desktop='true']) .titlebarDragRegion")?.get('-webkit-app-region'),
+    ).toBe('drag')
+    expect(
+      declarations(":global(html[data-dsh-desktop='true']) .root")?.get('padding-top'),
+    ).toBe('calc(6px + var(--dsh-desktop-titlebar-inset, 40px))')
+    expect(
+      declarations(":global(html[data-dsh-desktop='true']) .root button")?.get('-webkit-app-region'),
+    ).toBe('no-drag')
+  })
+
+  it('places native sidebar content around platform window controls', () => {
+    const mac = declarations(":global(html[data-dsh-desktop-platform='darwin']) .root")
+    expect(mac?.get('--dsh-sidebar-collapsed-width')).toBe('90px')
+    expect(mac?.get('--dsh-sidebar-rail-inline-padding')).toBe('27px')
+    expect(mac?.get('padding-top')).toBe('32px')
+    expect(
+      declarations(":global(html[data-dsh-desktop-platform='darwin']) .root.collapsed")
+        ?.get('padding-top'),
+    ).toBe('48px')
+    expect(
+      declarations(":global(html[data-dsh-desktop-platform='win32']) .root")?.get('padding-top'),
+    ).toBe('6px')
+    expect(
+      declarations(":global(html[data-dsh-desktop-platform='win32']) .titlebarDragRegion")
+        ?.get('display'),
+    ).toBe('none')
+  })
+
+  it('keeps every shell control keyboard-visible', () => {
+    for (const selector of ['.brand:focus-visible', '.iconButton:focus-visible', '.newSession:focus-visible']) {
+      expect(declarations(selector)?.get('outline')).toBe(
+        '2px solid var(--dsw-alias-state-business-primary)',
+      )
+    }
+  })
+
   it('shares and cancels the wide shell trailing padding structurally', () => {
     const root = declarations('.root')
     expect(root?.get('--dsh-sidebar-inline-padding')).toBe('12px')
@@ -52,8 +91,8 @@ describe('SidebarRoot.module.css', () => {
     expect(declarations('.railIn .footArea')?.get('animation')).toBe(
       'rail-fade-in 150ms var(--ds-ease-in-out) backwards',
     )
-    expect(css).toMatch(
-      /@keyframes rail-in\s*\{\s*from\s*\{\s*opacity: 0;\s*transform: translateX\(49px\);\s*}\s*}/,
+    expect(css).toContain(
+      'var(--dsh-sidebar-collapsed-width) - var(--dsh-sidebar-rail-inline-padding) + 3px',
     )
     expect(css).toMatch(/@keyframes rail-fade-in\s*\{\s*from\s*\{\s*opacity: 0;\s*}\s*}/)
   })
@@ -64,7 +103,4 @@ describe('SidebarRoot.module.css', () => {
     expect(declarations('.collapsed .newSession')?.get('width')).toBe('36px')
   })
 
-  it('reserves title-bar space under the macOS traffic lights', () => {
-    expect(declarations(":global(html[data-dsh-desktop-platform='darwin']) .root")?.get('padding-top')).toBe('32px')
-  })
 })

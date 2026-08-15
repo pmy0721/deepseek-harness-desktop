@@ -11,6 +11,7 @@ import { EventEmitter } from 'node:events'
  * also gives the real port when the invocation used `--port 0`.
  */
 const READINESS_PREFIX = 'dsh web: '
+const STARTUP_OUTPUT_LIMIT = 32_768
 
 /** Incremental parser for the Web Host's canonical readiness line. */
 export interface ReadinessParser {
@@ -111,12 +112,21 @@ export interface HarnessSupervisorEvents {
   exit: [exit: HarnessExit]
   /** A restart is scheduled after an unexpected exit. */
   restart: [detail: { attempt: number; delayMs: number }]
+  /** Startup failed; the diagnostic and recent output were appended to the log. */
+  diagnostic: [detail: { message: string; logFile: string }]
 }
 
+/** Timing and log destinations for one supervised Host process. */
 export interface HarnessSupervisorOptions {
+  /** Combined child stdout/stderr log file. */
   logFile: string
+  /** Maximum time to wait for the canonical readiness line. */
+  readinessTimeoutMs: number
+  /** Base delay for exponential restart backoff. */
   restartDelayMs: number
+  /** Maximum restart delay. */
   maxRestartDelayMs: number
+  /** Grace period before escalating a failed or stopping child to SIGKILL. */
   killTimeoutMs: number
 }
 
@@ -134,9 +144,13 @@ export class HarnessSupervisor extends EventEmitter<HarnessSupervisorEvents> {
   private stopping = false
   private stopPromise: Promise<void> | null = null
   private restartTimer: ReturnType<typeof setTimeout> | null = null
+  private readinessTimer: ReturnType<typeof setTimeout> | null = null
+  private failureKillTimer: ReturnType<typeof setTimeout> | null = null
   private restartAttempt = 0
   private parser: ReadinessParser = createReadinessParser()
   private servedUrl: string | null = null
+  private startupOutput = ''
+  private startupFailureReported = false
 
   constructor(command: string, args: readonly string[], options: HarnessSupervisorOptions) {
     super()
@@ -165,6 +179,11 @@ export class HarnessSupervisor extends EventEmitter<HarnessSupervisorEvents> {
   stop(): Promise<void> {
     if (this.stopPromise !== null) return this.stopPromise
     this.stopping = true
+    this.clearReadinessTimer()
+    if (this.failureKillTimer !== null) {
+      clearTimeout(this.failureKillTimer)
+      this.failureKillTimer = null
+    }
     if (this.restartTimer !== null) {
       clearTimeout(this.restartTimer)
       this.restartTimer = null
@@ -187,42 +206,98 @@ export class HarnessSupervisor extends EventEmitter<HarnessSupervisorEvents> {
 
   private spawn(): void {
     this.parser = createReadinessParser()
-    this.child = spawn(this.command, [...this.args], { stdio: ['ignore', 'pipe', 'pipe'] })
-    this.child.stdout?.setEncoding('utf8')
-    this.child.stderr?.setEncoding('utf8')
-    this.child.stdout?.on('data', (chunk: string) => { this.onStdout(chunk) })
-    this.child.stderr?.on('data', (chunk: string) => {
+    this.startupOutput = ''
+    this.startupFailureReported = false
+    const child = spawn(this.command, [...this.args], { stdio: ['ignore', 'pipe', 'pipe'] })
+    this.child = child
+    this.readinessTimer = setTimeout(() => {
+      this.failStartup(child, `desktop Host readiness timed out after ${this.options.readinessTimeoutMs} ms`)
+    }, this.options.readinessTimeoutMs)
+    child.stdout.setEncoding('utf8')
+    child.stderr.setEncoding('utf8')
+    child.stdout.on('data', (chunk: string) => { this.onStdout(child, chunk) })
+    child.stderr.on('data', (chunk: string) => {
       this.logStream.write(`[stderr] ${chunk}`)
+      if (this.servedUrl === null && !this.startupFailureReported) {
+        this.captureStartupOutput(`[stderr] ${chunk}`)
+      }
     })
-    this.child.on('error', (error: Error) => {
+    child.on('error', (error: Error) => {
       this.logStream.write(`[spawn error] ${error.message}\n`)
+      this.reportStartupFailure(`desktop Host could not be spawned: ${error.message}`)
     })
     // `close` also follows a failed spawn and waits for stdio to close, so one
     // terminal event covers launch failure, ordinary exit and complete log
     // drainage before a replacement child starts.
-    this.child.on('close', (code, signal) => { this.onExit(code, signal) })
+    child.on('close', (code, signal) => { this.onExit(code, signal) })
   }
 
-  private onStdout(chunk: string): void {
+  private onStdout(child: ChildProcess, chunk: string): void {
     this.logStream.write(chunk)
+    if (this.servedUrl !== null || this.startupFailureReported) return
+    this.captureStartupOutput(chunk)
     let url: string | undefined
     try {
       url = this.parser.push(chunk)
     } catch (error) {
-      this.logStream.write(`[readiness error] ${error instanceof Error ? error.message : String(error)}\n`)
+      this.failStartup(child, error instanceof Error ? error.message : String(error))
       return
     }
-    if (url === undefined || this.servedUrl !== null) return
+    if (url === undefined) return
+    this.clearReadinessTimer()
     this.servedUrl = url
+    this.startupOutput = ''
     this.restartAttempt = 0
     this.emit('ready', url)
   }
 
   private onExit(code: number | null, signal: NodeJS.Signals | null): void {
+    this.clearReadinessTimer()
+    if (this.failureKillTimer !== null) {
+      clearTimeout(this.failureKillTimer)
+      this.failureKillTimer = null
+    }
+    if (!this.stopping && this.servedUrl === null && !this.startupFailureReported) {
+      let message: string
+      try {
+        this.parser.finalize()
+        message = 'desktop Host exited before the window could load its origin'
+      } catch (error) {
+        message = error instanceof Error ? error.message : String(error)
+      }
+      this.reportStartupFailure(message)
+    }
     this.child = null
     this.servedUrl = null
     this.emit('exit', { code, signal, expected: this.stopping })
     if (!this.stopping) this.scheduleRestart()
+  }
+
+  private captureStartupOutput(chunk: string): void {
+    this.startupOutput = `${this.startupOutput}${chunk}`.slice(-STARTUP_OUTPUT_LIMIT)
+  }
+
+  private clearReadinessTimer(): void {
+    if (this.readinessTimer === null) return
+    clearTimeout(this.readinessTimer)
+    this.readinessTimer = null
+  }
+
+  private reportStartupFailure(message: string): void {
+    if (this.startupFailureReported) return
+    this.startupFailureReported = true
+    const recentOutput = this.startupOutput.trimEnd()
+    this.logStream.write(`\n[startup diagnostic] ${message}\n`)
+    if (recentOutput !== '') this.logStream.write(`[recent startup output]\n${recentOutput}\n`)
+    this.emit('diagnostic', { message, logFile: this.options.logFile })
+  }
+
+  private failStartup(child: ChildProcess, message: string): void {
+    if (this.stopping || this.startupFailureReported || this.child !== child) return
+    this.clearReadinessTimer()
+    this.reportStartupFailure(message)
+    child.kill('SIGTERM')
+    this.failureKillTimer = setTimeout(() => child.kill('SIGKILL'), this.options.killTimeoutMs)
   }
 
   private scheduleRestart(): void {

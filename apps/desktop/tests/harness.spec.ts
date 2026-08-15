@@ -67,7 +67,7 @@ describe('HarnessSupervisor', () => {
       const sup = new HarnessSupervisor(
         process.execPath,
         ['-e', 'console.log("dsh web: http://127.0.0.1:4567"); setTimeout(() => {}, 60000)'],
-        { logFile: join(dir, 'harness.log'), restartDelayMs: 50, maxRestartDelayMs: 100, killTimeoutMs: 1000 },
+        { logFile: join(dir, 'harness.log'), readinessTimeoutMs: 1000, restartDelayMs: 50, maxRestartDelayMs: 100, killTimeoutMs: 1000 },
       )
       const ready = readyEvent(sup)
       sup.start()
@@ -86,7 +86,7 @@ describe('HarnessSupervisor', () => {
       const sup = new HarnessSupervisor(
         process.execPath,
         ['-e', 'console.log("dsh web: http://127.0.0.1:4567"); setTimeout(() => process.exit(3), 50)'],
-        { logFile: join(dir, 'harness.log'), restartDelayMs: 100, maxRestartDelayMs: 200, killTimeoutMs: 1000 },
+        { logFile: join(dir, 'harness.log'), readinessTimeoutMs: 1000, restartDelayMs: 100, maxRestartDelayMs: 200, killTimeoutMs: 1000 },
       )
       const ready = readyEvent(sup)
       sup.start()
@@ -109,7 +109,7 @@ describe('HarnessSupervisor', () => {
       const sup = new HarnessSupervisor(
         join(dir, 'missing-dsh-command'),
         [],
-        { logFile, restartDelayMs: 100, maxRestartDelayMs: 200, killTimeoutMs: 1000 },
+        { logFile, readinessTimeoutMs: 1000, restartDelayMs: 100, maxRestartDelayMs: 200, killTimeoutMs: 1000 },
       )
       const restarted = restartEvent(sup)
       sup.start()
@@ -117,6 +117,81 @@ describe('HarnessSupervisor', () => {
       await restarted
       await sup.stop()
       await expect(readFile(logFile, 'utf8')).resolves.toMatch(/spawn error/iu)
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('terminates and restarts a Host that misses the readiness deadline', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'dsh-supervisor-'))
+    const logFile = join(dir, 'harness.log')
+    try {
+      const sup = new HarnessSupervisor(
+        process.execPath,
+        ['-e', 'console.log("loading plugins"); setTimeout(() => {}, 60000)'],
+        { logFile, readinessTimeoutMs: 50, restartDelayMs: 100, maxRestartDelayMs: 200, killTimeoutMs: 1000 },
+      )
+      const diagnostic = new Promise<{ message: string; logFile: string }>((resolve) => {
+        sup.once('diagnostic', resolve)
+      })
+      const restarted = restartEvent(sup)
+      sup.start()
+
+      await expect(diagnostic).resolves.toEqual({
+        message: 'desktop Host readiness timed out after 50 ms',
+        logFile,
+      })
+      await restarted
+      await sup.stop()
+      await expect(readFile(logFile, 'utf8')).resolves.toMatch(/startup diagnostic.*timed out[\s\S]*recent startup output[\s\S]*loading plugins/iu)
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('diagnoses an invalid readiness URL before restarting the Host', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'dsh-supervisor-'))
+    const logFile = join(dir, 'harness.log')
+    try {
+      const sup = new HarnessSupervisor(
+        process.execPath,
+        ['-e', 'console.log("dsh web: http://0.0.0.0:4173"); setTimeout(() => {}, 60000)'],
+        { logFile, readinessTimeoutMs: 1000, restartDelayMs: 100, maxRestartDelayMs: 200, killTimeoutMs: 1000 },
+      )
+      const restarted = restartEvent(sup)
+      sup.start()
+
+      await restarted
+      await sup.stop()
+      await expect(readFile(logFile, 'utf8')).resolves.toMatch(/startup diagnostic.*loopback HTTP/iu)
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('does not diagnose or restart an explicit stop during startup', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'dsh-supervisor-'))
+    try {
+      const sup = new HarnessSupervisor(
+        process.execPath,
+        ['-e', 'setTimeout(() => {}, 60000)'],
+        {
+          logFile: join(dir, 'harness.log'),
+          readinessTimeoutMs: 1000,
+          restartDelayMs: 100,
+          maxRestartDelayMs: 200,
+          killTimeoutMs: 1000,
+        },
+      )
+      let diagnostic = false
+      let restart = false
+      sup.on('diagnostic', () => { diagnostic = true })
+      sup.on('restart', () => { restart = true })
+      sup.start()
+
+      await sup.stop()
+      expect(diagnostic).toBe(false)
+      expect(restart).toBe(false)
     } finally {
       await rm(dir, { recursive: true, force: true })
     }
