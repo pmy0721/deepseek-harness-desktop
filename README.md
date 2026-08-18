@@ -14,8 +14,10 @@ This repository adds a community-maintained desktop application to the upstream 
 
 Repository-wide package versions remain governed by the root release process.
 
-#### Unreleased — 2026-08-15
+#### 0.1.0-rc.7 — 2026-08-18
 
+- Integrated the official `dsh-v0.1.0-rc.7` source baseline while retaining the supervised desktop Host, hardened Electron window, tray lifecycle, and packaged runtime.
+- Added the official plugin-owned settings surface, collapsible question composer, one-shot background subagents, large-history pagination fix, Safari textarea reflow fix, terminal fixes, and DeepSeek token-limit alignment.
 - Completed macOS and Windows native-window adaptation across the application frame, sidebar, conversation header, modal drag handling, and workspace fade behavior.
 - Added a 90-second Host readiness deadline, bounded recent-output diagnostics, an error page, process termination, and supervised restart.
 - Added Electron Builder `afterPack` validation for the bundled Node executable, dsh CLI entry, and Web frontend entry, with macOS and Windows configuration coverage.

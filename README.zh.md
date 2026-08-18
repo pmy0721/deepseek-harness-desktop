@@ -14,8 +14,10 @@ DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的�
 
 仓库级 package 版本仍由根目录发布流程统一管理。
 
-#### 未发布 — 2026-08-15
+#### 0.1.0-rc.7 — 2026-08-18
 
+- 集成官方 `dsh-v0.1.0-rc.7` 源码基线，同时保留受监督桌面 Host、强化的 Electron 窗口、托盘生命周期和随附运行时。
+- 纳入官方的插件自有设置界面、可折叠问题输入卡、一次性后台子代理、大型历史记录分页修复、Safari 文本框回流修复、终端修复和 DeepSeek token 上限对齐。
 - 完成 macOS 与 Windows 原生窗口适配，覆盖应用框架、侧边栏、会话标题栏、模态框拖拽处理和工作区淡化行为。
 - 加入 90 秒 Host 就绪时限、有限长度的近期输出诊断、错误页面、进程终止和受监督重启。
 - 加入 Electron Builder `afterPack` 检查，验证随附 Node 可执行文件、dsh CLI 入口和 Web 前端入口，并覆盖 macOS 与 Windows 配置测试。
