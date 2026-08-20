@@ -14,6 +14,13 @@ This repository adds a community-maintained desktop application to the upstream 
 
 Repository-wide package versions remain governed by the root release process. Dated desktop development logs are retained separately from releases.
 
+#### 0.1.0-rc.8 — 2026-08-21
+
+- Integrated the official `dsh-v0.1.0-rc.8` source baseline while retaining the supervised desktop Host, hardened Electron window, tray lifecycle, and packaged runtime.
+- Added native DeepSeek image requests, command image input, file and session references, installable Claude Code and Codex subagents, persistent PowerShell terminals, concurrent Web searches, and the upstream UI and session-performance fixes.
+- Disabled the CLI's default-browser handoff for the supervised Host because Electron owns the product window.
+- Adopted SQLite schema 17 for opt-in SQLite deployments. Existing schema versions remain incompatible and require a new database; the shipped Web profile continues to use JSONL persistence.
+
 #### 0.1.0-rc.7 — 2026-08-18
 
 - Integrated the official `dsh-v0.1.0-rc.7` source baseline while retaining the supervised desktop Host, hardened Electron window, tray lifecycle, and packaged runtime.
@@ -45,7 +52,7 @@ Install `Node.js`, then run:
 npx @deepseek-ai/dsh web
 ```
 
-The command starts the Web UI, served at `http://127.0.0.1:3080` by default. See [Web UI guide](docs/user/guide/index.md).
+The command starts the Web UI at `http://127.0.0.1:3080` by default and opens it in the default browser for a local launch. An SSH launch only prints the host URL because the SSH client or editor owns the local forwarded address. Pass `--no-open` to run the server without opening a browser. See [Web UI guide](docs/user/guide/index.md).
 
 ### Run from source
 
@@ -58,6 +65,8 @@ pnpm install
 pnpm run build
 pnpm dsh web
 ```
+
+`pnpm run build` prepares the repository artifacts. `pnpm dsh web` uses those built artifacts without rebuilding.
 
 ## Community and support
 

@@ -46,6 +46,7 @@ function main(): void {
   const root = process.cwd()
   const destination = resolve(root, values.out ?? DEFAULT_OUTPUT)
   const allMembers = family.members(root)
+  family.verifyBuildArtifacts(root)
   family.verifyVersions(allMembers)
   const members = family.publishOrder(family.publishableMembers(allMembers)).order
 

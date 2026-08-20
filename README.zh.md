@@ -14,6 +14,13 @@ DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的�
 
 仓库级 package 版本仍由根目录发布流程统一管理。带日期的桌面每日开发记录与版本发布记录分别保留。
 
+#### 0.1.0-rc.8 — 2026-08-21
+
+- 集成官方 `dsh-v0.1.0-rc.8` 源码基线，同时保留受监督桌面 Host、强化的 Electron 窗口、托盘生命周期和随附运行时。
+- 纳入 DeepSeek 原生图片请求、命令图文输入、文件与会话引用、可安装的 Claude Code 和 Codex 子代理、持久 PowerShell 终端、并发 Web 搜索，以及上游 UI 与会话性能修复。
+- 为受监督 Host 关闭 CLI 的默认浏览器交接，因为产品窗口由 Electron 管理。
+- 选择性 SQLite 部署采用 schema 17；已有 schema 版本不兼容，必须使用新数据库。随附 Web profile 继续使用 JSONL 持久化。
+
 #### 0.1.0-rc.7 — 2026-08-18
 
 - 集成官方 `dsh-v0.1.0-rc.7` 源码基线，同时保留受监督桌面 Host、强化的 Electron 窗口、托盘生命周期和随附运行时。
@@ -45,7 +52,7 @@ DeepSeek Harness 目前处于 _开发者预览_ 阶段，正在快速迭代。**
 npx @deepseek-ai/dsh web
 ```
 
-该命令会启动 Web UI，默认地址为 `http://127.0.0.1:3080`。详见 [Web UI 指南](docs/user/guide/index.md)。
+该命令默认会在 `http://127.0.0.1:3080` 启动 Web UI，本机启动时还会用默认浏览器打开页面。通过 SSH 启动时只打印宿主机 URL，因为本地转发地址由 SSH 客户端或编辑器持有。传入 `--no-open` 可仅运行服务器而不打开浏览器。详见 [Web UI 指南](docs/user/guide/index.md)。
 
 ### 从源码运行
 
@@ -58,6 +65,8 @@ pnpm install
 pnpm run build
 pnpm dsh web
 ```
+
+`pnpm run build` 会准备仓库产物。`pnpm dsh web` 会直接使用这些已构建产物，不会重新构建。
 
 ## 社区与支持
 
@@ -75,9 +84,9 @@ pnpm dsh web
   </thead>
   <tbody>
     <tr>
-      <td align="center"><img src="assets/community-wecom-assistant.png" alt="DeepSeek Harness 企微小助手二维码" width="180" height="180"></td>
-      <td align="center"><a href="https://trtgsjkv6r.feishu.cn/share/base/form/shrcnIt5twSVdLGD52KJBckGCgg"><img src="assets/community-wecom-survey.png" alt="DeepSeek Harness 入群问卷二维码" width="180" height="180"></a></td>
-      <td align="center"><img src="assets/community-wechat-official-account.png" alt="DeepSeek Harness 团队微信公众号二维码" width="180" height="180"></td>
+      <td align="center"><img src="https://cdn.deepseek.com/harness/readme/community-wecom-assistant.png" alt="DeepSeek Harness 企微小助手二维码" width="180" height="180"></td>
+      <td align="center"><a href="https://trtgsjkv6r.feishu.cn/share/base/form/shrcnIt5twSVdLGD52KJBckGCgg"><img src="https://cdn.deepseek.com/harness/readme/community-wecom-survey.png" alt="DeepSeek Harness 入群问卷二维码" width="180" height="180"></a></td>
+      <td align="center"><img src="https://cdn.deepseek.com/harness/readme/community-wechat-official-account.png" alt="DeepSeek Harness 团队微信公众号二维码" width="180" height="180"></td>
     </tr>
   </tbody>
 </table>

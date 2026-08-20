@@ -38,6 +38,7 @@ describe('RepositoryCleaner', () => {
     write(join(root, 'products/shell/lib/types/index.js'))
     write(join(root, 'products/shell/lib/index.js'))
     write(join(root, '.typecheck/legacy.tsbuildinfo'))
+    write(join(root, '.dsh-build/client-build-environment.json'))
     write(join(root, 'root.tsbuildinfo'))
     write(join(root, 'packages/removed/ghost/node_modules/.bin/tool'))
 
@@ -46,6 +47,7 @@ describe('RepositoryCleaner', () => {
     expect(existsSync(join(root, 'products/shell/lib'))).toBe(false)
     expect(existsSync(join(root, 'products/shell/src/index.ts'))).toBe(true)
     expect(existsSync(join(root, '.typecheck'))).toBe(false)
+    expect(existsSync(join(root, '.dsh-build'))).toBe(false)
     expect(existsSync(join(root, 'root.tsbuildinfo'))).toBe(false)
     expect(existsSync(join(root, 'packages/removed/ghost'))).toBe(false)
   })
@@ -72,6 +74,20 @@ describe('RepositoryCleaner', () => {
     expect(existsSync(join(root, entry, 'lib'))).toBe(false)
     expect(existsSync(join(root, entry, 'src/index.ts'))).toBe(true)
     expect(existsSync(join(root, 'native/landlock-run/tsconfig.tsbuildinfo'))).toBe(false)
+  })
+
+  it('removes the Electron desktop application output', async () => {
+    const root = fixture()
+    const desktop = 'apps/desktop'
+    addProject(root, desktop, 'lib')
+    write(join(root, desktop, 'lib/main.js'))
+    write(join(root, desktop, 'tsconfig.tsbuildinfo'))
+
+    await new RepositoryCleaner(root).clean()
+
+    expect(existsSync(join(root, desktop, 'lib'))).toBe(false)
+    expect(existsSync(join(root, desktop, 'src/index.ts'))).toBe(true)
+    expect(existsSync(join(root, desktop, 'tsconfig.tsbuildinfo'))).toBe(false)
   })
 
   it('refuses project outputs reached through a symlink outside the repository', async () => {

@@ -35,6 +35,11 @@ function port(): string {
   return process.env[PORT_ENV] ?? '0'
 }
 
+/** Web-profile arguments for a Host whose browser lifecycle belongs to Electron. */
+function webArgs(): string[] {
+  return ['web', '--no-open', '--port', port()]
+}
+
 /** Platform log directory; only macOS and Windows are shipped. */
 function defaultLogDir(): string {
   if (process.platform === 'win32') {
@@ -74,14 +79,14 @@ function resolveLaunch(resourceRoot: string): HarnessLaunch {
   const node = bundledNode(resourceRoot)
   const dshBin = bundledDshBin(resourceRoot)
   if (node !== null && dshBin !== null) {
-    return { command: node, args: [dshBin, 'web', '--port', port()] }
+    return { command: node, args: [dshBin, ...webArgs()] }
   }
   const explicit = process.env[DSH_BIN_ENV]
   if (explicit !== undefined && explicit !== '') {
-    return { command: explicit, args: ['web', '--port', port()] }
+    return { command: explicit, args: webArgs() }
   }
   const repoRoot = join(resourceRoot, '..', '..')
-  return { command: 'node', args: [join(repoRoot, 'apps', 'cli', 'lib', 'bin.js'), 'web', '--port', port()] }
+  return { command: 'node', args: [join(repoRoot, 'apps', 'cli', 'lib', 'bin.js'), ...webArgs()] }
 }
 
 /**

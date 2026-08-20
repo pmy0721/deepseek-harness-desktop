@@ -12,7 +12,7 @@ DeepSeek Harness 通过 `dsh web` 提供图形客户端，因此桌面使用需�
 
 ## Decision
 
-`apps/desktop` 是一个 Electron 桌面壳，以子进程方式监督构建后的 `dsh web` profile。子进程绑定随机 `127.0.0.1` 端口，在 Loader 树完成结算后打印标准就绪 URL，并继续独占 Web Host、API 路由、客户端模块图、会话存储与 profile 数据。Electron 渲染进程加载该源，不修改应用协议。
+`apps/desktop` 是一个 Electron 桌面壳，以子进程方式监督构建后的 `dsh web --no-open` profile。子进程绑定随机 `127.0.0.1` 端口，在 Loader 树完成结算后打印标准就绪 URL，并继续独占 Web Host、API 路由、客户端模块图、会话存储与 profile 数据。`--no-open` 会关闭 CLI 的本机启动浏览器交接，因为产品窗口由 Electron 管理。Electron 渲染进程加载该源，不修改应用协议。
 
 主进程拥有一个 Harness 子进程和一个应用实例。它把 Host 输出记录到平台日志，以有限指数退避重启异常退出的 Host，普通关闭窗口时将窗口隐藏到托盘，并在明确退出应用前停止子进程。每个子进程最多有 90 秒输出标准就绪行；超时或格式错误时，主进程会记录最近 32 KiB 启动输出，以与关闭时相同的有限升级机制终止该子进程，向窗口指出诊断日志位置，再由 supervisor 启动替代进程。打包版本在随附 Node 运行时上执行部署后的 `@deepseek-ai/dsh` 闭包，不依赖 Electron 内置 Node 或 `PATH` 中的可执行文件。
 
@@ -20,7 +20,7 @@ Web 客户端消费桌面平台标记，但不会因此获得 Electron 权限。
 
 渲染进程启用上下文隔离，关闭 Node 集成，启用 Electron 渲染沙箱，拒绝权限请求，并阻止离开受监督 loopback 源的导航。外部 HTTP 与 HTTPS 链接交给系统浏览器打开。窗口不安装 preload 桥，也不暴露 Harness 方法或文件系统原语。
 
-打包步骤从 nodejs.org 下载固定版本的 Node 发行包，依据对应版本的 `SHASUMS256.txt` 校验归档，部署生产 CLI 依赖闭包，实体化工作区链接，并在任一阶段不完整时失败。`afterPack` hook 会在生成安装包前，再从完成的应用资源中独立检查目标 Node 可执行文件、部署后的 dsh CLI 入口和 Web 前端入口。私有桌面 workspace 共享 dsh 发布版本与 tag，但不进入 npm pack 和 publish 操作。个人产物保持未签名、未公证；公开分发者负责 Developer ID 签名与公证。
+打包步骤从 nodejs.org 下载固定版本的 Node 发行包，依据对应版本的 `SHASUMS256.txt` 校验归档，部署生产 CLI 依赖闭包，实体化工作区链接，并在任一阶段不完整时失败。`afterPack` hook 会在生成安装包前，再从完成的应用资源中独立检查目标 Node 可执行文件、部署后的 dsh CLI 入口和 Web 前端入口。私有桌面 workspace 将 Electron 入口直接输出到 `apps/desktop/lib`；仓库清理器会同时移除这份应用自有输出及其增量构建状态，确保后续打包命令必须生成完整入口。该 workspace 共享 dsh 发布版本与 tag，但不进入 npm pack 和 publish 操作。个人产物保持未签名、未公证；公开分发者负责 Developer ID 签名与公证。
 
 ## Alternatives considered
 
