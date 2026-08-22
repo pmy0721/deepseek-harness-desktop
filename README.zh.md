@@ -8,11 +8,18 @@ DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的�
 
 ## 桌面发行版
 
-本仓库在上游 DeepSeek Harness 源码中加入了社区维护的桌面应用。它不是 DeepSeek 官方产品。构建、运行、安全性、限制与源码来源见[桌面应用文档](apps/desktop/README.md)。
+本仓库在上游 DeepSeek Harness 源码中加入了社区维护的桌面应用。它不是 DeepSeek 官方产品。构建、运行、安全性、限制与源码来源见[桌面应用文档](apps/desktop/README.zh.md)。
 
 ### 桌面版本更新
 
 仓库级 package 版本仍由根目录发布流程统一管理。带日期的桌面每日开发记录与版本发布记录分别保留。
+
+#### 0.1.1-rc.2 — 2026-08-22
+
+- 集成官方 `dsh-v0.1.1-rc.2` 源码基线，同时保留受监督桌面 Host、强化的 Electron 窗口、托盘生命周期和随附运行时。
+- 加入 `DeepSeek-V4-Flash-Vision-Exp` 模型、Files API 图片上传复用，以及根据模型要求自动缩放图片和转换格式。
+- 纳入 Bubblewrap `/proc/<pid>/root` 限制绕过修复，以及上游会话投影、凭据授权和静态 Web 交付改进。
+- 纳入多行问题回答，以及上游输入框引用、Markdown 表格、缓存命中率显示和子代理导航修复。
 
 #### 0.1.0-rc.8 — 2026-08-21
 
@@ -42,6 +49,8 @@ DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的�
 
 DeepSeek Harness 目前处于 _开发者预览_ 阶段，正在快速迭代。**未来将出现破坏兼容性的变更。**
 
+<a id="run"></a>
+
 ## 运行
 
 ### 通过 `npm` 运行
@@ -52,7 +61,9 @@ DeepSeek Harness 目前处于 _开发者预览_ 阶段，正在快速迭代。**
 npx @deepseek-ai/dsh web
 ```
 
-该命令默认会在 `http://127.0.0.1:3080` 启动 Web UI，本机启动时还会用默认浏览器打开页面。通过 SSH 启动时只打印宿主机 URL，因为本地转发地址由 SSH 客户端或编辑器持有。传入 `--no-open` 可仅运行服务器而不打开浏览器。详见 [Web UI 指南](docs/user/guide/index.md)。
+该命令默认会在 `http://127.0.0.1:3080` 启动 Web UI，本机启动时还会用默认浏览器打开页面。通过 SSH 启动时只打印宿主机 URL，因为本地转发地址由 SSH 客户端或编辑器持有。传入 `--no-open` 可仅运行服务器而不打开浏览器。详见 [Web UI 指南](docs/user/guide/index.zh.md)。
+
+<a id="run-from-source"></a>
 
 ### 从源码运行
 
@@ -93,11 +104,11 @@ pnpm dsh web
 
 ## 参与贡献
 
-参见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+参见 [CONTRIBUTING.md](CONTRIBUTING.zh.md)。
 
 ## 开发
 
-请先阅读[开发指南](docs/development.md)与[架构文档](docs/architecture.md)。
+请先阅读[开发指南](docs/development.zh.md)与[架构文档](docs/architecture.zh.md)。
 
 面向 agent：请遵循 [AGENTS.md](AGENTS.md)。
 

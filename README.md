@@ -14,6 +14,13 @@ This repository adds a community-maintained desktop application to the upstream 
 
 Repository-wide package versions remain governed by the root release process. Dated desktop development logs are retained separately from releases.
 
+#### 0.1.1-rc.2 — 2026-08-22
+
+- Integrated the official `dsh-v0.1.1-rc.2` source baseline while retaining the supervised desktop Host, hardened Electron window, tray lifecycle, and packaged runtime.
+- Added the `DeepSeek-V4-Flash-Vision-Exp` model, Files API image upload reuse, and model-aware image resizing and format conversion.
+- Included the Bubblewrap `/proc/<pid>/root` confinement fix and upstream session projection, credential authorization, and static Web delivery improvements.
+- Adopted multiline question answers plus the upstream composer-reference, Markdown-table, cache-hit display, and subagent-navigation fixes.
+
 #### 0.1.0-rc.8 — 2026-08-21
 
 - Integrated the official `dsh-v0.1.0-rc.8` source baseline while retaining the supervised desktop Host, hardened Electron window, tray lifecycle, and packaged runtime.

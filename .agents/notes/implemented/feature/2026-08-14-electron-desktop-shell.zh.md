@@ -8,7 +8,7 @@ Status: implemented
 
 DeepSeek Harness 通过 `dsh web` 提供图形客户端，因此桌面使用需要终端管理的 Host 和独立浏览器窗口。可分发的桌面应用还需要兼容的 Node 运行时、确定的 Host 生命周期、原生应用窗口，以及将用户数据保留在应用载荷之外的安装包。
 
-[GUI 分层决定](../architecture/2026-07-19-gui-layering-and-rpc-protocol.md)为 Electron IPC 载体预留了位置，但当前 Web 客户端启动还依赖 Host 组合的客户端模块图、静态 bundle 路由、就绪语义以及 HTTP/WebSocket 传输。替换这条完整交付路径，与提供桌面产品是两个独立目标。
+[GUI 分层决定](../architecture/2026-07-19-gui-layering-and-rpc-protocol.zh.md)为 Electron IPC 载体预留了位置，但当前 Web 客户端启动还依赖 Host 组合的客户端模块图、静态 bundle 路由、就绪语义以及 HTTP/WebSocket 传输。替换这条完整交付路径，与提供桌面产品是两个独立目标。
 
 ## Decision
 
