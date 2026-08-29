@@ -4,11 +4,12 @@ import { dirname } from 'node:path'
 import { EventEmitter } from 'node:events'
 
 /**
- * The web app prints one `dsh web: http://127.0.0.1:<port>` line (optionally
- * followed by ` (LAN: ...)`) once its Loader tree has settled; that line is the
- * documented readiness signal (`packages/bundle/web-app`), so the supervisor
- * treats it as the moment the window may load the origin. Matching the line
- * also gives the real port when the invocation used `--port 0`.
+ * The web app prints one tokenized `dsh web: http://127.0.0.1:<port>/?...`
+ * line (optionally followed by ` (LAN: ...)`) once its Loader tree has settled;
+ * that line is the documented readiness signal (`packages/bundle/web-app`), so
+ * the supervisor treats it as the moment the window may load the authenticated
+ * URL. Matching the line also gives the real port when the invocation used
+ * `--port 0`.
  */
 const READINESS_PREFIX = 'dsh web: '
 const STARTUP_OUTPUT_LIMIT = 32_768
@@ -18,20 +19,21 @@ export interface ReadinessParser {
   /**
    * Consume one stdout chunk.
    * @param chunk - Text emitted by the Host.
-   * @returns The loopback origin once a complete readiness line is observed.
+   * @returns The authenticated loopback URL once a complete readiness line is observed.
    */
   push(chunk: string): string | undefined
   /**
    * Finish the stream and require a readiness line.
-   * @returns The parsed loopback origin.
+   * @returns The parsed authenticated loopback URL.
    */
   finalize(): string
 }
 
 /**
- * Assert and normalize one readiness line to a loopback HTTP origin with an
- * explicit port. The line may carry a trailing ` (LAN: ...)` candidate, which
- * is ignored: only the first whitespace-delimited token is the canonical URL.
+ * Assert one readiness line as a root loopback HTTP URL with an explicit port.
+ * The query carries the Host's process token and must reach the renderer
+ * unchanged. A trailing ` (LAN: ...)` candidate is ignored: only the first
+ * whitespace-delimited token is the canonical URL.
  */
 function parseReadinessLine(line: string): string | undefined {
   if (!line.startsWith(READINESS_PREFIX)) return undefined
@@ -48,14 +50,13 @@ function parseReadinessLine(line: string): string | undefined {
   if (url.protocol !== 'http:'
     || (url.hostname !== '127.0.0.1' && url.hostname !== 'localhost')
     || url.pathname !== '/'
-    || url.search !== ''
     || url.hash !== ''
     || !Number.isInteger(port)
     || port < 1
     || port > 65_535) {
     throw new Error(`desktop Host readiness URL must be loopback HTTP with an explicit port: ${token}`)
   }
-  return url.origin
+  return url.search === '' ? url.origin : url.href
 }
 
 /**
@@ -106,7 +107,7 @@ interface HarnessExit {
 
 /** Events emitted by {@link HarnessSupervisor}. */
 export interface HarnessSupervisorEvents {
-  /** The harness served a Web GUI; carries the canonical loopback URL. */
+  /** The harness served a Web GUI; carries the authenticated loopback URL. */
   ready: [url: string]
   /** The child process exited. */
   exit: [exit: HarnessExit]
@@ -161,7 +162,7 @@ export class HarnessSupervisor extends EventEmitter<HarnessSupervisorEvents> {
     this.logStream = createWriteStream(options.logFile, { flags: 'a' })
   }
 
-  /** The canonical loopback URL once observed; `null` before the first ready. */
+  /** The authenticated loopback URL once observed; `null` before the first ready. */
   get url(): string | null {
     return this.servedUrl
   }

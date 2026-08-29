@@ -93,7 +93,7 @@ function isExternalUrl(raw: string): boolean {
 
 function hasOrigin(raw: string, expected: string): boolean {
   try {
-    return new URL(raw).origin === expected
+    return new URL(raw).origin === new URL(expected).origin
   } catch {
     return false
   }
@@ -177,7 +177,10 @@ function loadWindow(win: BrowserWindow): void {
     // Mark the renderer so the Web GUI reserves title-bar space under the
     // frameless window controls (macOS traffic lights sit over the sidebar).
     const rendererUrl = new URL(url)
-    rendererUrl.searchParams.set('dsh-desktop-platform', process.platform)
+    // The Host exchanges its query token for an HttpOnly cookie and redirects
+    // to `/`. A fragment is not sent to the Host and survives that redirect,
+    // so the Web entry still sees the presentation marker on its first render.
+    rendererUrl.hash = `dsh-desktop-platform=${process.platform}`
     void win.loadURL(rendererUrl.href)
   }
 }

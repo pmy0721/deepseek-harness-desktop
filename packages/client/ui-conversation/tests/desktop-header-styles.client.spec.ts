@@ -14,7 +14,7 @@ describe('conversation desktop header', () => {
     expect(css).toMatch(
       /:global\(html\[data-dsh-desktop='true'\]\) \.desktopTitlebarDragRegion\s*\{[^}]*z-index: 1;[^}]*-webkit-app-region: drag;/s,
     )
-    expect(css).toMatch(/\.header\s*\{[^}]*z-index: 2;/s)
+    expect(css).toMatch(/\.header\s*\{[^}]*z-index: 9;/s)
   })
 
   it('composes the Windows caption controls into the title row', () => {

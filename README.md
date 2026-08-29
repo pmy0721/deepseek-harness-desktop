@@ -4,7 +4,9 @@ English | [中文](README.zh.md)
 
 DeepSeek Harness (`dsh`) is an open-source agent harness developed by [DeepSeek AI](https://deepseek.com).
 
-It uses an architecture where **everything is a plugin**, and is powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper).
+It is built on an **everything-is-a-plugin** architecture and powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://arxiv.org/abs/2608.25512).
+
+Documentation: [https://deepseek-harness.github.io/deepseek-harness/](https://deepseek-harness.github.io/deepseek-harness/)
 
 ## Desktop distribution
 
@@ -13,6 +15,13 @@ This repository adds a community-maintained desktop application to the upstream 
 ### Desktop version updates
 
 Repository-wide package versions remain governed by the root release process. Dated desktop development logs are retained separately from releases.
+
+#### 0.1.2-alpha.1 — 2026-08-29
+
+- Integrated the official `dsh-v0.1.2-alpha.1` source baseline while retaining the supervised Desktop Host, hardened Electron window, tray lifecycle, and packaged runtime.
+- Added conversation process folding, exact token usage, compact turn navigation, adaptive content width, font sizing, improved image handling, and queued prompts during active turns.
+- Added configurable subagent models and reasoning effort, broader ACP support, provider sign-in surfaces, third-party UI languages, and the official DeepSeek plugin inventory and optional Session-log upload integrations.
+- Adopted token-authenticated Web startup, profile-owned application launch, the `@Remote` gateway, PTC mode naming, WebSocket keepalives, and the upstream shell, preset, session, and WebFetch fixes.
 
 #### 0.1.1-rc.2 — 2026-08-22
 
@@ -47,7 +56,9 @@ Repository-wide package versions remain governed by the root release process. Da
 
 ## Developer preview
 
-DeepSeek Harness is currently in _developer preview_ and is iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+DeepSeek Harness is in _developer preview_ and iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+
+Review the [safety notice](SAFETY.md) before running the project.
 
 ## Run
 
@@ -77,7 +88,7 @@ pnpm dsh web
 
 ## Community and support
 
-- Feel free to submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).
+- Submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).
 - Add the [`dsh-plugin`](https://github.com/topics/dsh-plugin) topic to your plugin repository for discoverability.
 - Join <a href="https://discord.gg/Ycq5dCaS4">DeepSeek Harness Discord community</a>.
 

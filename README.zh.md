@@ -4,7 +4,9 @@
 
 DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的开源 agent harness（智能体框架）。
 
-它采用**一切皆插件**的架构，并由 [Cordis](https://github.com/cordiverse/cordis) 驱动，其设计参见论文 [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper)。
+它构建于**一切皆插件**的架构之上，由 [Cordis](https://github.com/cordiverse/cordis) 驱动，其设计参见论文 [_A Programming Paradigm for Spatiotemporal Composability_](https://arxiv.org/abs/2608.25512)。
+
+文档：[https://deepseek-harness.github.io/deepseek-harness/](https://deepseek-harness.github.io/deepseek-harness/)
 
 ## 桌面发行版
 
@@ -13,6 +15,13 @@ DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的�
 ### 桌面版本更新
 
 仓库级 package 版本仍由根目录发布流程统一管理。带日期的桌面每日开发记录与版本发布记录分别保留。
+
+#### 0.1.2-alpha.1 — 2026-08-29
+
+- 集成官方 `dsh-v0.1.2-alpha.1` 源码基线，同时保留受监督 Desktop Host、强化的 Electron 窗口、托盘生命周期和随附运行时。
+- 纳入会话过程折叠、精确 token 用量、紧凑回合导航、自适应正文宽度、字号设置、改进的图片处理，以及会话运行期间的排队发送。
+- 纳入可配置的子代理模型与推理力度、更完整的 ACP 支持、提供方登录界面、第三方界面语言，以及 DeepSeek 官方插件清单和可选 Session 日志上传集成。
+- 采用带 token 鉴权的 Web 启动、由 profile 负责的应用启动、`@Remote` 网关、PTC mode 命名、WebSocket 心跳，以及上游 shell、preset、session 与 WebFetch 修复。
 
 #### 0.1.1-rc.2 — 2026-08-22
 
@@ -47,7 +56,9 @@ DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的�
 
 ## 开发者预览
 
-DeepSeek Harness 目前处于 _开发者预览_ 阶段，正在快速迭代。**未来将出现破坏兼容性的变更。**
+DeepSeek Harness 处于 _开发者预览_ 阶段，正在快速迭代。**未来将出现破坏兼容性的变更。**
+
+运行本项目前，请阅读[安全说明](SAFETY.zh.md)。
 
 <a id="run"></a>
 
@@ -81,7 +92,7 @@ pnpm dsh web
 
 ## 社区与支持
 
-- 欢迎通过 [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions) 提交反馈或 bug 报告。
+- 通过 [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions) 提交反馈或 bug 报告。
 - 为你的插件仓库添加 [`dsh-plugin`](https://github.com/topics/dsh-plugin) 话题，便于被发现。
 - 欢迎加入 DeepSeek Harness 企微群：扫码添加企微小助手并填写入群问卷，完成后小助手会邀请你入群。
 

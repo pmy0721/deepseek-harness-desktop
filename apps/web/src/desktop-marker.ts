@@ -6,7 +6,9 @@ const DESKTOP_PLATFORMS = new Set(['darwin', 'win32', 'linux'])
  * @param root - document root that owns platform presentation selectors.
  */
 export function applyDesktopPresentationMarker(locationHref: string, root: HTMLElement): void {
-  const platform = new URL(locationHref).searchParams.get('dsh-desktop-platform')
+  const url = new URL(locationHref)
+  const platform = url.searchParams.get('dsh-desktop-platform')
+    ?? new URLSearchParams(url.hash.slice(1)).get('dsh-desktop-platform')
   if (platform === null || !DESKTOP_PLATFORMS.has(platform)) return
   root.dataset.dshDesktop = 'true'
   root.dataset.dshDesktopPlatform = platform

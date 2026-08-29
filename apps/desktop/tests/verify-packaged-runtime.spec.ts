@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -21,17 +21,17 @@ function resources(appOutDir: string, platform: 'darwin' | 'win32'): string {
 
 async function materializeRuntime(appOutDir: string, platform: 'darwin' | 'win32'): Promise<void> {
   const root = resources(appOutDir, platform)
-  const paths = [
-    platform === 'darwin'
-      ? join(root, 'runtime', 'darwin-arm64', 'bin', 'node')
-      : join(root, 'runtime', 'win32-x64', 'node.exe'),
-    join(root, 'harness', 'lib', 'bin.js'),
-    join(root, 'harness', 'node_modules', '@deepseek-ai', 'dsh-web-frontend', 'dist', 'index.html'),
-  ]
-  for (const path of paths) {
+  const node = platform === 'darwin'
+    ? join(root, 'runtime', 'darwin-arm64', 'bin', 'node')
+    : join(root, 'runtime', 'win32-x64', 'node.exe')
+  const cli = join(root, 'harness', 'lib', 'bin.js')
+  const frontend = join(root, 'harness', 'node_modules', '@deepseek-ai', 'dsh-web-frontend', 'dist', 'index.html')
+  for (const path of [node, cli, frontend]) {
     await mkdir(join(path, '..'), { recursive: true })
-    await writeFile(path, '')
   }
+  await symlink(process.execPath, node)
+  await writeFile(cli, "process.stdout.write('0.1.2-test\\n')\n")
+  await writeFile(frontend, '')
 }
 
 describe('packaged desktop runtime verification', () => {
@@ -51,6 +51,23 @@ describe('packaged desktop runtime verification', () => {
     try {
       await expect(afterPack(context(appOutDir, 'darwin'))).rejects.toThrow(
         /bundled Node executable[\s\S]*dsh CLI entry[\s\S]*Web frontend entry/iu,
+      )
+    } finally {
+      await rm(appOutDir, { recursive: true, force: true })
+    }
+  })
+
+  it('rejects a runtime whose dsh entry cannot execute', async () => {
+    const appOutDir = await mkdtemp(join(tmpdir(), 'dsh-packaged-runtime-'))
+    try {
+      await materializeRuntime(appOutDir, 'darwin')
+      await writeFile(
+        join(resources(appOutDir, 'darwin'), 'harness', 'lib', 'bin.js'),
+        "throw new Error('broken staged closure')\n",
+      )
+
+      await expect(afterPack(context(appOutDir, 'darwin'))).rejects.toThrow(
+        'packaged desktop runtime cannot execute dsh --version',
       )
     } finally {
       await rm(appOutDir, { recursive: true, force: true })
