@@ -117,15 +117,18 @@ describe('SidebarRoot shell', () => {
         options?.fallback ?? null) as SidebarRootComponentProps['renderSlot']}
     />)
 
-    expect(screen.getByText('DSH Local Build')).toBeTruthy()
-    expect(screen.getByText('1.2.3-rc.4-0123456-dirty')).toBeTruthy()
+    expect(screen.getByText('DeepSeek Harness')).toBeTruthy()
+    expect(screen.getByText('v1.2.3-rc4')).toBeTruthy()
+    expect(screen.queryByText(/0123456|dirty/)).toBeNull()
     expect(container.querySelector('svg')).not.toBeNull()
   })
 
   it.each([
-    [{ DSH_CLIENT_VERSION: '1.2.3' }, '1.2.3'],
-    [{ DSH_CLIENT_COMMIT_HASH: 'abcdef0', DSH_CLIENT_VERSION: '1.2.3' }, '1.2.3-abcdef0'],
-  ])('omits unavailable build-version suffixes from %j', (environment, expected) => {
+    [{ DSH_CLIENT_VERSION: '1.2.3' }, 'v1.2.3'],
+    [{ DSH_CLIENT_VERSION: '1.2.3-alpha.4' }, 'v1.2.3-a4'],
+    [{ DSH_CLIENT_VERSION: '1.2.3-beta.2' }, 'v1.2.3-b2'],
+    [{ DSH_CLIENT_COMMIT_HASH: 'abcdef0', DSH_CLIENT_VERSION: '1.2.3-rc.4' }, 'v1.2.3-rc4'],
+  ])('renders a compact release badge from %j', (environment, expected) => {
     for (const [name, value] of Object.entries(environment)) vi.stubEnv(name, value)
     render(<SidebarRoot
       collapsed={false} width={300}
@@ -135,7 +138,7 @@ describe('SidebarRoot shell', () => {
         options?.fallback ?? null) as SidebarRootComponentProps['renderSlot']}
     />)
 
-    expect(screen.getByText('DSH Local Build')).toBeTruthy()
+    expect(screen.getByText('DeepSeek Harness')).toBeTruthy()
     expect(screen.getByText(expected)).toBeTruthy()
   })
 
@@ -148,7 +151,7 @@ describe('SidebarRoot shell', () => {
         options?.fallback ?? null) as SidebarRootComponentProps['renderSlot']}
     />)
 
-    expect(screen.getByText('DSH Local Build')).toBeTruthy()
+    expect(screen.getByText('DeepSeek Harness')).toBeTruthy()
   })
 
   it('hands the region its wide flag and clamps expandSidebar to the collapsed state', () => {

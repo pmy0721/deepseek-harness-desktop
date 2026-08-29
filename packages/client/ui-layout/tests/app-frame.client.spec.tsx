@@ -103,7 +103,7 @@ function mountFrame() {
       useSessionPendingInteraction={useSessionPendingInteraction}
       useWorkspaces={((sel: (s: WorkspaceSnapshot) => unknown) => sel(workspaceState)) as never}
       SessionProvider={SessionProviderStub}
-      t={key => key === 'brand.localBuild' ? 'DSH Local Build' : key}
+      t={key => key === 'brand.name' ? 'DeepSeek Harness' : key}
     />
   )
   const utils = render(element())
@@ -160,7 +160,7 @@ afterEach(() => {
 describe('AppFrame', () => {
   it('localizes the product title when the build does not supply one', () => {
     mountFrame()
-    expect(document.title).toBe('DSH Local Build')
+    expect(document.title).toBe('DeepSeek Harness')
   })
 
   it('projects the selected durable Session title', () => {

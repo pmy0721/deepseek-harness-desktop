@@ -56,6 +56,16 @@ function clientBuildValue(name: string): string | undefined {
   return value
 }
 
+/** Mirror the user-visible release abbreviation without importing package internals. */
+function expectedBuildVersion(version: string): string {
+  const match = /^(\d+\.\d+\.\d+)(?:-(alpha|beta|rc)\.(\d+))?$/.exec(version)
+  if (match === null) return `v${version}`
+  const [, core, prerelease, iteration] = match
+  if (prerelease === undefined || iteration === undefined) return `v${core}`
+  const prereleaseCode = prerelease === 'alpha' ? 'a' : prerelease === 'beta' ? 'b' : 'rc'
+  return `v${core}-${prereleaseCode}${iteration}`
+}
+
 it('boots the built plugin graph and renders a fixture session end to end', async () => {
   mountAssembledApp()
 
@@ -63,17 +73,13 @@ it('boots the built plugin graph and renders a fixture session end to end', asyn
   const tree = await screen.findByRole('tree', { name: 'Sessions' }, { timeout: 10_000 })
   if (clientBuildValue('DSH_CLIENT_BUILD_PROFILE') === 'official') {
     expect(document.querySelector('svg[viewBox="26 0 156 24"]')).not.toBeNull()
-    expect(screen.queryByText('DSH Local Build')).toBeNull()
+    expect(screen.queryByText('DeepSeek Harness')).toBeNull()
   } else {
     expect(document.querySelector('svg[viewBox="0 0 23.16 17.04"]')).not.toBeNull()
     const version = clientBuildValue('DSH_CLIENT_VERSION')
     if (version === undefined) throw new Error('default client build record must carry DSH_CLIENT_VERSION')
-    const commit = clientBuildValue('DSH_CLIENT_COMMIT_HASH')
-    const buildVersion = version
-      + (commit === undefined ? '' : `-${commit}`)
-      + (clientBuildValue('DSH_CLIENT_GIT_DIRTY') === 'true' ? '-dirty' : '')
-    screen.getByText('DSH Local Build')
-    screen.getByText(buildVersion)
+    screen.getByText('DeepSeek Harness')
+    screen.getByText(expectedBuildVersion(version))
   }
   // The compact layout dropped group session counts; the fixture workspace
   // group row renders immediately with its sessions beneath it.

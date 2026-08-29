@@ -153,12 +153,12 @@ exports[`sidebar shell snapshots > renders the expanded column (wordmark, capsul
                 <span
                   class="localBuildTitle"
                 >
-                  DSH Local Build
+                  DeepSeek Harness
                 </span>
                 <span
                   class="buildVersion"
                 >
-                  1.2.3-rc.4-abc1234-dirty
+                  v1.2.3-rc4
                 </span>
               </span>
             </div>
@@ -288,12 +288,12 @@ exports[`sidebar shell snapshots > renders the expanded column in the default lo
                 <span
                   class="localBuildTitle"
                 >
-                  DSH 本地构建
+                  DeepSeek Harness
                 </span>
                 <span
                   class="buildVersion"
                 >
-                  1.2.3-rc.4-abc1234-dirty
+                  v1.2.3-rc4
                 </span>
               </span>
             </div>
