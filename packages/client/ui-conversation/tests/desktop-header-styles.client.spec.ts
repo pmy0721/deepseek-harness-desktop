@@ -9,12 +9,13 @@ const css = readFileSync(
 )
 
 describe('conversation desktop header', () => {
-  it('keeps the blank-page drag seat below the Session header', () => {
+  it('limits the extra drag seat to pages without a Session header', () => {
     expect(css).toMatch(/\.desktopTitlebarDragRegion\s*\{[^}]*display: none;/s)
     expect(css).toMatch(
       /:global\(html\[data-dsh-desktop='true'\]\) \.desktopTitlebarDragRegion\s*\{[^}]*z-index: 1;[^}]*-webkit-app-region: drag;/s,
     )
-    expect(css).toMatch(/\.header\s*\{[^}]*z-index: 9;/s)
+    const component = readFileSync(new URL('../src/client/skeleton/ConversationRoot.tsx', import.meta.url), 'utf8')
+    expect(component).toMatch(/sessionId === undefined && \(\s*<div className=\{css\.desktopTitlebarDragRegion\}/s)
   })
 
   it('composes the Windows caption controls into the title row', () => {

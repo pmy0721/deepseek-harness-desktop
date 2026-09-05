@@ -16,6 +16,13 @@ This repository adds a community-maintained desktop application to the upstream 
 
 Repository-wide package versions remain governed by the root release process. Dated desktop development logs are retained separately from releases.
 
+#### 0.1.3-alpha.1 — 2026-09-05
+
+- Integrated the official `dsh-v0.1.3-alpha.1` baseline with the supervised Desktop Host, hardened window, tray lifecycle, native sidebar, and packaged runtime.
+- Added general file uploads, image tool cards, Skill fuzzy search, environment proxy support, and expanded model discovery.
+- Included goal-pause cancellation, streaming tool-call, session search, and cache fixes, plus bidirectional subagent messaging.
+- Adopted Session format v2 with immutable generation migration, lifecycle-owned handles, and process locks. Upstream reports a known slowdown when loading some historical sessions.
+
 #### 0.1.2-alpha.1 — 2026-08-29
 
 - Integrated the official `dsh-v0.1.2-alpha.1` source baseline while retaining the supervised Desktop Host, hardened Electron window, tray lifecycle, and packaged runtime.

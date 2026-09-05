@@ -16,7 +16,7 @@ DeepSeek Harness 通过 `dsh web` 提供图形客户端，因此桌面使用需�
 
 主进程拥有一个 Harness 子进程和一个应用实例。它把 Host 输出记录到平台日志，以有限指数退避重启异常退出的 Host，普通关闭窗口时将窗口隐藏到托盘，并在明确退出应用前停止子进程。每个子进程最多有 90 秒输出标准就绪行；超时或格式错误时，主进程会记录最近 32 KiB 启动输出，以与关闭时相同的有限升级机制终止该子进程，向窗口指出诊断日志位置，再由 supervisor 启动替代进程。打包版本在随附 Node 运行时上执行部署后的 `@deepseek-ai/dsh` 闭包，不依赖 Electron 内置 Node 或 `PATH` 中的可执行文件。
 
-Web 客户端消费桌面平台标记，但不会因此获得 Electron 权限。该标记位于 URL fragment 中，因此可跨越 token 交换重定向保留且不会进入 HTTP 请求。macOS 与 Windows 使用明确的标题栏拖拽 seat，交互后代保持不可拖拽；模态状态会禁用所有拖拽 seat。macOS 使用 90px 折叠侧边栏轨道避让交通灯，Windows 在会话页头预留原生标题栏按钮区域。原生 vibrancy 或 acrylic 只从半透明侧边栏透出；会话栏与详情栏保持不透明，Linux 则在标题栏 inset 下继续使用普通浏览器表面。
+Web 客户端消费桌面平台标记，但不会因此获得 Electron 权限。该标记位于 URL fragment 中，因此可跨越 token 交换重定向保留且不会进入 HTTP 请求。macOS 与 Windows 使用明确的标题栏拖拽 seat，交互后代保持不可拖拽；模态状态会禁用所有拖拽 seat。额外的空白页拖拽条仅在没有 Session 页头时挂载，避免 Web 页头没有层叠上下文时拦截控件交互。macOS 使用 90px 折叠侧边栏轨道避让交通灯，Windows 在会话页头预留原生标题栏按钮区域。原生 vibrancy 或 acrylic 只从半透明侧边栏透出；会话栏与详情栏保持不透明，Linux 则在标题栏 inset 下继续使用普通浏览器表面。
 
 渲染进程启用上下文隔离，关闭 Node 集成，启用 Electron 渲染沙箱，拒绝权限请求，并阻止离开受监督 loopback 源的导航。外部 HTTP 与 HTTPS 链接交给系统浏览器打开。窗口不安装 preload 桥，也不暴露 Harness 方法或文件系统原语。
 
