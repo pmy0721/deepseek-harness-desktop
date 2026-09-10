@@ -68,6 +68,7 @@ export class RepositoryCleaner {
     const canonicalRoot = await realpath(this.root)
 
     await this.addIfPresent(targets, join(this.root, '.dsh-build'), canonicalRoot)
+    await this.addIfPresent(targets, join(this.root, 'apps/desktop/.desktop-build'), canonicalRoot)
 
     // These checks cover legacy root-level incremental state emitted by older configs.
     await this.addIfPresent(targets, join(this.root, '.typecheck'), canonicalRoot)
@@ -76,14 +77,13 @@ export class RepositoryCleaner {
     }
     await this.addIfPresent(
       targets,
-      join(this.root, 'native/landlock-run/tsconfig.tsbuildinfo'),
+      join(this.root, 'native/system/tsconfig.tsbuildinfo'),
       canonicalRoot,
     )
-    await this.addIfPresent(targets, join(this.root, 'apps/desktop/tsconfig.tsbuildinfo'), canonicalRoot)
 
     // The root project-reference graph is the source of truth for live build targets.
-    // Package projects declare lib/types as outDir; its parent lib also owns the
-    // sibling runtime bundles. Application entry projects may own lib directly.
+    // Each emitting project declares lib/types as outDir; its parent lib also owns
+    // the sibling runtime bundles, so the complete build output root is removed.
     for (const outputDirectory of this.buildOutputDirectories()) {
       await this.addIfPresent(targets, outputDirectory, canonicalRoot)
     }
@@ -122,8 +122,7 @@ export class RepositoryCleaner {
     const outputs = new Set<string>()
     const pending = [join(this.root, 'tsconfig.json')]
     const visited = new Set<string>()
-    const nativeEntryOutput = join(this.root, 'native/landlock-run/packages/entry/lib')
-    const desktopOutput = join(this.root, 'apps/desktop/lib')
+    const nativeEntryOutput = join(this.root, 'native/system/packages/entry/lib')
 
     while (pending.length > 0) {
       const nextConfigPath = pending.pop()
@@ -137,7 +136,7 @@ export class RepositoryCleaner {
         const typesDirectory = resolve(parsed.options.outDir)
         const outputDirectory = basename(typesDirectory) === 'types'
           ? dirname(typesDirectory)
-          : typesDirectory === nativeEntryOutput || typesDirectory === desktopOutput
+          : typesDirectory === nativeEntryOutput
             ? typesDirectory
             : undefined
         if (outputDirectory === undefined) {

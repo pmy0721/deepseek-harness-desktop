@@ -38,10 +38,8 @@ function reportPublishOrder(family: ReleaseFamily, plan: PublishPlan): void {
 }
 
 /**
- * Assert the publishable members may be published: `publishableMembers` already
- * drops `private` members (they ship outside npm), so this guards the filtered
- * set against a private member slipping back in.
- * @param members - the family's publishable members.
+ * Assert every member may be published: npm refuses a `private` package.
+ * @param members - the family's members.
  */
 function verifyPublishable(members: readonly ReleaseMember[]): void {
   const priv = members.filter(member => member.manifest.private === true)
@@ -86,18 +84,17 @@ function main(): void {
   // Resolve the publish order here, before the build: an install-edge cycle
   // makes the order unrepresentable, and that has to surface at the first gate
   // rather than when pack is already writing tarballs.
-  const publishableMembers = family.publishableMembers(members)
-  const plan = family.publishOrder(publishableMembers)
-  if (plan.order.length !== publishableMembers.length) {
+  const plan = family.publishOrder(members)
+  if (plan.order.length !== members.length) {
     throw new Error(
-      `release family ${family.id}: publish order covers ${String(plan.order.length)} of ${String(publishableMembers.length)} publishable members`,
+      `release family ${family.id}: publish order covers ${String(plan.order.length)} of ${String(members.length)} members`,
     )
   }
   reportPublishOrder(family, plan)
 
   const publishing = process.env.RELEASE_PUBLISH === 'true'
   if (publishing) {
-    verifyPublishable(publishableMembers)
+    verifyPublishable(members)
     verifyTag(family, members, process.env.GITHUB_REF ?? '')
   }
 

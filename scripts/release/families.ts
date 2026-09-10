@@ -15,6 +15,7 @@ import {
   officialClientBuildEnvironment,
   readClientBuildRecord,
 } from '../client-build-environment.ts'
+import { PUBLIC_EXPERIMENTAL_PACKAGE_DIRECTORIES } from '../experimental-package-policy.ts'
 import { validateTarballPayload } from '../publication-payload.ts'
 
 /**
@@ -36,18 +37,6 @@ const PEER_SECTIONS = ['peerDependencies'] as const
 /** The workspace root manifest, which is never a release member. */
 const WORKSPACE_ROOT_PACKAGE = '@deepseek-ai/dsh-root'
 
-/** Versioned release-family members distributed outside npm. */
-const PRIVATE_RELEASE_MEMBER_DIRECTORIES = new Set(['apps/desktop'])
-
-/**
- * Whether a release-family directory is allowed to remain private.
- * @param directory - Repository-relative package directory.
- * @returns True only for a reviewed non-npm distribution member.
- */
-export function isPrivateReleaseMemberDirectory(directory: string): boolean {
-  return PRIVATE_RELEASE_MEMBER_DIRECTORIES.has(directory)
-}
-
 /** One peer declaration the publish order leaves unordered. */
 interface DroppedPeerEdge {
   readonly consumer: string
@@ -68,7 +57,7 @@ export interface PublishPlan {
   readonly droppedPeerEdges: readonly DroppedPeerEdge[]
 }
 
-/** One versioned member of a release family, whether or not npm publishes it. */
+/** One publishable package of a release family. */
 export interface ReleaseMember {
   readonly directory: string
   readonly name: string
@@ -129,7 +118,7 @@ export abstract class ReleaseFamily {
   /**
    * Discover this family's members.
    * @param root - repository root.
-   * @returns Members sorted by directory, with names validated and deduplicated.
+   * @returns Publishable members sorted by directory, with names validated and deduplicated.
    */
   members(root: string): ReleaseMember[] {
     const manifestPaths = globSync([...this.patterns], { cwd: root }).sort()
@@ -140,6 +129,7 @@ export abstract class ReleaseFamily {
     for (const manifestPath of manifestPaths) {
       const normalized = manifestPath.replaceAll('\\', '/')
       const manifest = readManifest(resolve(root, manifestPath))
+      if (manifest.private === true) continue
       const name = requireString(manifest, 'name', normalized)
       const version = requireString(manifest, 'version', normalized)
       if (name === WORKSPACE_ROOT_PACKAGE) throw new Error(`${normalized} selected the workspace root`)
@@ -154,19 +144,6 @@ export abstract class ReleaseFamily {
       })
     }
     return members
-  }
-
-  /**
-   * The members this family publishes to npm. A `private` member still shares
-   * the family version and tag — `bump` advances it and `verifyVersions` holds
-   * it — but it ships outside npm, so it never enters a pack or publish set.
-   * `apps/desktop` is the case: an Electron app distributed as GitHub Release
-   * installers, not an npm package.
-   * @param members - this family's members.
-   * @returns The publishable members.
-   */
-  publishableMembers(members: readonly ReleaseMember[]): ReleaseMember[] {
-    return members.filter(member => member.manifest.private !== true)
   }
 
   /**
@@ -345,7 +322,11 @@ export abstract class ReleaseFamily {
 /** Release packages and apps: one shared version across the whole family. */
 class DshFamily extends ReleaseFamily {
   readonly id = 'dsh'
-  readonly patterns = ['packages/!(experimental)/*/package.json', 'apps/*/package.json'] as const
+  readonly patterns = [
+    'packages/!(experimental)/*/package.json',
+    'apps/*/package.json',
+    ...PUBLIC_EXPERIMENTAL_PACKAGE_DIRECTORIES.map(directory => `${directory}/package.json`),
+  ] as const
   readonly tagPrefix = 'dsh-v'
 
   /** Require current artifacts from a complete official client build. */

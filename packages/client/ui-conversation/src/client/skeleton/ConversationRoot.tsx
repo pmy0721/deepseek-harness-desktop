@@ -371,9 +371,6 @@ export function ConversationRoot({
 
   return (
     <div ref={rootResizeRef} className={css.root} data-phase={phase}>
-      {sessionId === undefined && (
-        <div className={css.desktopTitlebarDragRegion} data-desktop-titlebar-drag="center" aria-hidden="true" />
-      )}
       {sessionId === undefined ? null : renderSlot('conversation.session.header', {})}
       <div className={css.body}>
         <div className={css.scrollBody} data-conversation-scroll="">

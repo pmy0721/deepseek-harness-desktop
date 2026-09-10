@@ -1,9 +1,8 @@
 /**
- * Verify that each executable deploy manifest supplies every plugin referenced
+ * Verify that the executable deploy manifest supplies every plugin referenced
  * by a shipped agent preset and every required workspace peer in its dependency
  * graph. With auto peer installation disabled, either omission can otherwise
- * fail only when Cordis loads the packaged plugin. The Python SDK executable and
- * desktop-bundled CLI are independent deploy roots, so the default gate checks both.
+ * fail only when Cordis loads the packaged plugin.
  */
 import { globSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
@@ -32,12 +31,6 @@ interface RuntimePlatform {
 type RuntimePlatformManifest = Record<string, RuntimePlatform>
 
 const AGENT_PRESET_GLOB = 'packages/preset/agent-presets/presets/*/agent.cordis.yml'
-
-/** Deploy roots whose closure completeness the gate owns. */
-const DEFAULT_MANIFESTS = [
-  'python/sdk-runtime/package.json',
-  'apps/cli/package.json',
-] as const
 
 export interface RuntimeClosureResult {
   failures: string[]
@@ -70,6 +63,7 @@ export async function verifyRuntimeClosure(
     parents.set(dependency, undefined)
     queue.push(dependency)
   }
+
   const failures: string[] = []
   if (presetPaths.length === 0) failures.push(`no agent presets matched ${AGENT_PRESET_GLOB}`)
   if (targets.length === 0) failures.push('python/sdk-runtime/platforms.json defines no runtime targets')
@@ -110,21 +104,16 @@ if (import.meta.main) {
     args: process.argv.slice(2),
     options: { manifest: { type: 'string' } },
   })
-  const manifestPaths = values.manifest === undefined ? DEFAULT_MANIFESTS : [values.manifest]
-  let failed = false
-  for (const manifestPath of manifestPaths) {
-    const result = await verifyRuntimeClosure(root, manifestPath)
-    if (result.failures.length > 0) {
-      failed = true
-      console.error(`verify-runtime-closure: preset plugins or required workspace peers are missing from ${manifestPath} dependencies:`)
-      for (const failure of result.failures) console.error(`  ${failure}`)
-    } else {
-      console.log(
-        `verify-runtime-closure: ${result.presetCount} agent presets and ${result.workspacePackageCount} workspace packages form a closed runtime dependency graph (${manifestPath}).`,
-      )
-    }
+  const result = await verifyRuntimeClosure(root, values.manifest)
+  if (result.failures.length > 0) {
+    console.error('verify-runtime-closure: preset plugins or required workspace peers are missing from python/sdk-runtime dependencies:')
+    for (const failure of result.failures) console.error(`  ${failure}`)
+    process.exitCode = 1
+  } else {
+    console.log(
+      `verify-runtime-closure: ${result.presetCount} agent presets and ${result.workspacePackageCount} workspace packages form a closed runtime dependency graph.`,
+    )
   }
-  if (failed) process.exitCode = 1
 }
 
 async function missingPresetPlugins(

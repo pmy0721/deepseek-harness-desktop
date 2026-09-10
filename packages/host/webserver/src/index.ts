@@ -1,9 +1,8 @@
 /**
  * @deepseek-ai/dsh-host-webserver — node:http route registration with optional
  * gzip, index injection, and one fallback seat. It knows no harness concepts
- * and serves no files; the composing application owns dist serving. The
- * desktop shell reaches it through a supervised loopback Web Host; a future
- * IPC carrier would replace it. This package never prints the URL.
+ * and serves no files; the composing application owns dist serving. Electron
+ * uses file:// plus IPC instead, and this package never prints the URL.
  * Route handlers retain direct response ownership.
  */
 
