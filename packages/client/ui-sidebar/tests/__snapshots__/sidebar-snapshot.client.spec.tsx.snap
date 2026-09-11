@@ -138,20 +138,16 @@ exports[`sidebar shell snapshots > renders the expanded column (wordmark, capsul
               style="display: contents;"
             >
               <span
-                class="localBuildBrand"
+                class="fallbackBrandName"
               >
-                <span
-                  class="localBuildTitle"
-                >
-                  DeepSeek Harness
-                </span>
-                <span
-                  class="buildVersion"
-                >
-                  1.2.3-rc.4-abc1234-dirty
-                </span>
+                DeepSeek Harness
               </span>
             </div>
+            <span
+              class="buildVersion"
+            >
+              v1.2.3-rc4
+            </span>
           </span>
         </span>
       </button>
@@ -268,20 +264,16 @@ exports[`sidebar shell snapshots > renders the expanded column in the default lo
               style="display: contents;"
             >
               <span
-                class="localBuildBrand"
+                class="fallbackBrandName"
               >
-                <span
-                  class="localBuildTitle"
-                >
-                  DeepSeek Harness
-                </span>
-                <span
-                  class="buildVersion"
-                >
-                  1.2.3-rc.4-abc1234-dirty
-                </span>
+                DeepSeek Harness
               </span>
             </div>
+            <span
+              class="buildVersion"
+            >
+              v1.2.3-rc4
+            </span>
           </span>
         </span>
       </button>

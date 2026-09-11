@@ -7,7 +7,7 @@ import type {
   SidebarFooterActionOwnerProps, SidebarRootComponentProps, SidebarSectionOwnerProps,
   SidebarSettingsOwnerProps,
 } from '../src/client/contract/slots.ts'
-import { SidebarRoot } from '../src/client/SidebarRoot.tsx'
+import { shortBuildVersion, SidebarRoot } from '../src/client/SidebarRoot.tsx'
 import { en } from '../src/client/locales.ts'
 import { en as commonEn } from '@deepseek-ai/dsh-client-locale/src/locales/en.ts'
 
@@ -92,6 +92,16 @@ function mountShell({ collapsed = false, width = 300 }: { collapsed?: boolean; w
 }
 
 describe('SidebarRoot shell', () => {
+  it.each([
+    ['1.2.3', 'v1.2.3'],
+    ['1.2.3-alpha.4', 'v1.2.3-a4'],
+    ['1.2.3-beta.2', 'v1.2.3-b2'],
+    ['1.2.3-rc.4', 'v1.2.3-rc4'],
+    ['1.2.3-preview.5', 'v1.2.3-preview.5'],
+  ])('formats %s as %s', (version, expected) => {
+    expect(shortBuildVersion(version)).toBe(expected)
+  })
+
   it('routes New Session (capsule + wordmark) and the column toggle', () => {
     const b = mountShell()
     expect(screen.getByTestId('custom-brand-mark')).toBeTruthy()
@@ -120,27 +130,15 @@ describe('SidebarRoot shell', () => {
     />)
 
     expect(screen.getByText('DeepSeek Harness')).toBeTruthy()
-    expect(screen.getByText('1.2.3-rc.4-0123456-dirty')).toBeTruthy()
+    expect(screen.getByText('v1.2.3-rc4')).toBeTruthy()
     expect(container.querySelector('svg')).not.toBeNull()
   })
 
-  it.each([
-    [{ DSH_CLIENT_VERSION: '1.2.3' }, '1.2.3'],
-    [{ DSH_CLIENT_COMMIT_HASH: 'abcdef0', DSH_CLIENT_VERSION: '1.2.3' }, '1.2.3-abcdef0'],
-  ])('omits unavailable build-version suffixes from %j', (environment, expected) => {
-    for (const [name, value] of Object.entries(environment)) vi.stubEnv(name, value)
-    render(<SidebarRoot
-      collapsed={false} width={300}
-      useSessions={neverHook} useSessionPendingInteraction={useSessionPendingInteraction}
-      usePanelInfo={usePanelInfo} selectPanel={() => {}} usePanels={selector => selector([])}
-      useResource={useResource} useWorkspaces={neverHook}
-      startSession={vi.fn()} toggleSidebar={vi.fn()} t={t}
-      renderSlot={((_key: string, _owner: unknown, options?: { fallback?: ReactNode }) =>
-        options?.fallback ?? null) as SidebarRootComponentProps['renderSlot']}
-    />)
-
-    expect(screen.getByText('DeepSeek Harness')).toBeTruthy()
-    expect(screen.getByText(expected)).toBeTruthy()
+  it('keeps the release badge when a package fills the brand slot', () => {
+    vi.stubEnv('DSH_CLIENT_VERSION', '1.2.3-rc.4')
+    mountShell()
+    expect(screen.getByTestId('custom-brand-name')).toBeTruthy()
+    expect(screen.getByText('v1.2.3-rc4')).toBeTruthy()
   })
 
   it('retains the local-build fallback without complete build metadata', () => {
