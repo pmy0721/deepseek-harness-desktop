@@ -38,6 +38,8 @@ The browser Web UI, dsh backend, existing `dsh plugin` CLI, user npm, and user p
 
 The renderer uses `nodeIntegration: false`, `contextIsolation: true`, and `sandbox: true`. Preload exposes typed RPC, lifecycle, update, locale, and desktop-plugin actions rather than raw `ipcRenderer`, filesystem access, shell commands, or pnpm arguments. Electron selects a typed English or Chinese dictionary from its application locale and falls back to English; menus, native dialogs, and the plugin-management renderer use that locale-owned copy.
 
+The packaged macOS and Windows applications use the repository-owned `apps/desktop/build/icon.png` brand asset as their application icon. Falling back to Electron's default application icon is not an accepted package result.
+
 ## Filesystem layout
 
 ```text

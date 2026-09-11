@@ -10,6 +10,7 @@ export interface DesktopElectronBuilderConfig {
     { readonly from: string, readonly to: 'dsh/node_modules' },
   ]
   readonly mac: {
+    readonly icon: 'build/icon.png'
     readonly identity: string | undefined
     readonly forceCodeSigning: boolean
     readonly notarize: boolean
@@ -21,6 +22,15 @@ export interface DesktopElectronBuilderConfig {
   }
   readonly nsis: {
     readonly include: string
+  }
+  readonly win: {
+    readonly icon: 'build/icon.png'
+    readonly forceCodeSigning: boolean
+    readonly signtoolOptions: {
+      readonly sign: unknown
+      readonly signingHashAlgorithms: readonly ['sha256']
+    }
+    readonly target: readonly ['nsis']
   }
   readonly artifactBuildCompleted: (artifact: { readonly file: string }) => Promise<void> | undefined
   readonly publish: readonly [{ readonly provider: 'generic', readonly url: string }] | null

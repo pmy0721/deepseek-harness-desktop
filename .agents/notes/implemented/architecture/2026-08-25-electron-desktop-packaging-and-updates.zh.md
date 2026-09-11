@@ -38,6 +38,8 @@ Electron 拥有 `.dsh/profiles/desktop` 保留 profile。[内置运行时决策]
 
 渲染进程使用 `nodeIntegration: false`、`contextIsolation: true` 和 `sandbox: true`。Preload 暴露类型化 RPC、生命周期、更新、locale 与桌面插件操作，而不暴露原始 `ipcRenderer`、文件系统访问、shell 命令或 pnpm 参数。Electron 根据应用 locale 选择类型化的中英文字典，并以英文作为 fallback；菜单、原生对话框与插件管理渲染进程使用这些由 locale 持有的文案。
 
+打包后的 macOS 与 Windows 应用使用仓库自有的 `apps/desktop/build/icon.png` 品牌资源作为应用图标。回退到 Electron 默认应用图标不属于可接受的打包结果。
+
 ## 文件系统布局
 
 ```text

@@ -71,6 +71,7 @@ export function createElectronBuilderConfig(
       { from: join(buildPaths.dsh, 'node_modules'), to: 'dsh/node_modules' },
     ],
     mac: {
+      icon: 'build/icon.png',
       category: 'public.app-category.developer-tools',
       identity: macOSSigning?.signingIdentity,
       forceCodeSigning: true,
@@ -105,6 +106,7 @@ export function createElectronBuilderConfig(
       )
     },
     win: {
+      icon: 'build/icon.png',
       forceCodeSigning: !unsigned,
       signtoolOptions: {
         sign: windowsSigner,

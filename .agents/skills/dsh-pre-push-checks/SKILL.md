@@ -24,6 +24,8 @@ pnpm --silent run change-scope --base <verified-base-ref>
 
 The command never guesses or fetches a base. Supply the ref verified from current remote or stack state; use `--head <ref>` when inspecting a commit other than `HEAD`. Its versioned JSON records committed paths relative to the resolved merge base, while staged, unstaged, and untracked paths describe the current worktree. After merging a changed base, rerun the report, reassess which behavior the combined scope can affect, and rerun only checks invalidated by the merge.
 
+On a downstream Desktop branch, an upstream sync also follows the [overlay-preservation decision](../../notes/implemented/process/2026-09-12-downstream-desktop-overlay-preservation.md): inventory downstream-only behavior before the merge, compare the result with its first parent, and verify the bilingual update history, packaged icon, sidebar badge, installed plugin graph, and shared data before deployment.
+
 ## Select relevant evidence
 
 There is no universal local baseline beyond the hooks. Every behavior change needs the narrowest available test or purpose-built check that would fail for its regression; add broader checks only for surfaces the diff actually reaches.

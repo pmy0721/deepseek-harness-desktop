@@ -4,6 +4,10 @@
 
 桌面应用是包裹 dsh Web UI 的 Electron 壳。它不打开监听端口：内置的上游 Node.js 子进程启动已安装的 dsh 项目，带版本的分帧字节管道在没有外层 Base64 信封的情况下承载 Fetch 请求与流式响应，Node IPC 承载生命周期控制，`dsh-app://` 则提供与后端版本匹配的客户端资源。
 
+## 来源说明
+
+这个个人发行版由 [Mekey Pan](https://github.com/pmy0721) 与 Codex 维护，并跟随 [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)。仓库历史保留了 [salathleizhang/deepseek-harness-desktop](https://github.com/salathleizhang/deepseek-harness-desktop) 早期采用 MIT 许可证的 Electron 实现，以及从 [`anywhere-labs/deepseek-harness-desktop` 的 `f9aa1b1`](https://github.com/anywhere-labs/deepseek-harness-desktop/tree/f9aa1b1a173e52705aa7e01bb734469a9dd247a8) 改编的原生窗口、启动诊断和随包运行时验证工作。这个个人发行版不是 DeepSeek 官方发布版本。
+
 ## 关键技术决策
 
 | 决策 | 原因 | 直接结果 |
@@ -63,7 +67,7 @@ Workspace 开发使用调用命令的 Node.js 运行当前 CLI 与私有 Desktop
 
 ## 打包
 
-正常打包只需执行一条完整命令。该命令会先准备发布资源，再生成宿主平台的安装包与更新元数据。所有目标都要求通过 `DSH_DESKTOP_APP_ID` 提供反向域名形式的应用 ID。macOS 目标还要求通过 `DSH_DESKTOP_MACOS_SIGNING_IDENTITY` 提供 electron-builder 证书限定名，通过 `DSH_DESKTOP_MACOS_TEAM_ID` 提供对应的 10 字符 Apple Team ID，并提供一套完整的 notarytool 凭据方案。App Store Connect API Key 方式使用以下变量：
+正常打包只需执行一条完整命令。该命令会先准备发布资源，再生成宿主平台的安装包与更新元数据，并把仓库自有的 `build/icon.png` 品牌资源应用到 macOS 与 Windows 应用。所有目标都要求通过 `DSH_DESKTOP_APP_ID` 提供反向域名形式的应用 ID。macOS 目标还要求通过 `DSH_DESKTOP_MACOS_SIGNING_IDENTITY` 提供 electron-builder 证书限定名，通过 `DSH_DESKTOP_MACOS_TEAM_ID` 提供对应的 10 字符 Apple Team ID，并提供一套完整的 notarytool 凭据方案。App Store Connect API Key 方式使用以下变量：
 
 ```sh
 export DSH_DESKTOP_APP_ID='<reverse-DNS application ID>'

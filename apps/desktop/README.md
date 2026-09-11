@@ -4,6 +4,10 @@ English | [中文](README.zh.md)
 
 The desktop application is an Electron shell around the dsh Web UI. It opens no listening port: a bundled upstream Node.js child boots the installed dsh project, versioned framed byte pipes carry Fetch requests and streaming responses without an outer Base64 envelope, Node IPC carries lifecycle control, and `dsh-app://` serves the matching client assets.
 
+## Provenance
+
+This personal distribution is maintained by [Mekey Pan](https://github.com/pmy0721) with Codex and follows [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness). Its repository history retains the earlier MIT-licensed Electron implementation from [salathleizhang/deepseek-harness-desktop](https://github.com/salathleizhang/deepseek-harness-desktop) and the native-window, startup-diagnostic, and packaged-runtime verification work adapted from [`anywhere-labs/deepseek-harness-desktop` at `f9aa1b1`](https://github.com/anywhere-labs/deepseek-harness-desktop/tree/f9aa1b1a173e52705aa7e01bb734469a9dd247a8). This personal distribution is not an official DeepSeek release.
+
 ## Key technical decisions
 
 | Decision | Why | Direct consequence |
@@ -63,7 +67,7 @@ Workspace development runs the current CLI and private Desktop Host packages und
 
 ## Package
 
-The normal packaging path is one complete command. It performs release preparation before creating the host platform's installers and update metadata. Every target requires a reverse-DNS `DSH_DESKTOP_APP_ID`. macOS targets additionally require the electron-builder certificate qualifier in `DSH_DESKTOP_MACOS_SIGNING_IDENTITY`, its 10-character Apple Team ID in `DSH_DESKTOP_MACOS_TEAM_ID`, and one complete notarytool credential strategy. The App Store Connect API-key strategy uses these variables:
+The normal packaging path is one complete command. It performs release preparation before creating the host platform's installers and update metadata, and applies the repository-owned `build/icon.png` brand asset to macOS and Windows applications. Every target requires a reverse-DNS `DSH_DESKTOP_APP_ID`. macOS targets additionally require the electron-builder certificate qualifier in `DSH_DESKTOP_MACOS_SIGNING_IDENTITY`, its 10-character Apple Team ID in `DSH_DESKTOP_MACOS_TEAM_ID`, and one complete notarytool credential strategy. The App Store Connect API-key strategy uses these variables:
 
 ```sh
 export DSH_DESKTOP_APP_ID='<reverse-DNS application ID>'
